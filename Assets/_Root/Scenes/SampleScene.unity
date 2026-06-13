@@ -244,11 +244,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ea1737cb362bbd45a98b7d17464292c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileMover
-  board: {fileID: 0}
+  board: {fileID: 250786073}
   startTile: {x: 0, y: 0}
   yOffset: 0.5
   moveCooldown: 0.25
-  allowDiagonalMovement: 1
+  moveSpeed: 8
+  diagonalInputBuffer: 0.075
   upKey: 37
   downKey: 33
   leftKey: 15
@@ -871,11 +872,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ea1737cb362bbd45a98b7d17464292c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileMover
-  board: {fileID: 0}
+  board: {fileID: 250786073}
   startTile: {x: 20, y: 20}
   yOffset: 0.5
   moveCooldown: 0.25
-  allowDiagonalMovement: 1
+  moveSpeed: 8
+  diagonalInputBuffer: 0.075
   upKey: 63
   downKey: 64
   leftKey: 61
