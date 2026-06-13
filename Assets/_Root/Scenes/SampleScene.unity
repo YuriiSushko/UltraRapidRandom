@@ -132,6 +132,8 @@ GameObject:
   - component: {fileID: 211189790}
   - component: {fileID: 211189789}
   - component: {fileID: 211189793}
+  - component: {fileID: 211189795}
+  - component: {fileID: 211189794}
   m_Layer: 0
   m_Name: player_1
   m_TagString: Untagged
@@ -244,12 +246,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ea1737cb362bbd45a98b7d17464292c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileMover
-  board: {fileID: 250786073}
-  startTile: {x: 0, y: 0}
   yOffset: 0.5
-  moveCooldown: 0.25
   moveSpeed: 8
+--- !u!114 &211189794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 211189788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
+  canMoveDiagonally: 1
+  limitMovementToWalkableTiles: 0
+  walkableTileIDs: 
+--- !u!114 &211189795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 211189788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 775fa1ebe3a15e84197a2ca5b4b017d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  board: {fileID: 250786073}
+  mover: {fileID: 211189793}
+  ruleResolver: {fileID: 211189794}
+  startTile: {x: 0, y: 0}
   diagonalInputBuffer: 0.075
+  moveCooldown: 0.5
   upKey: 37
   downKey: 33
   leftKey: 15
@@ -770,6 +801,8 @@ GameObject:
   - component: {fileID: 1903012733}
   - component: {fileID: 1903012732}
   - component: {fileID: 1903012736}
+  - component: {fileID: 1903012738}
+  - component: {fileID: 1903012737}
   m_Layer: 0
   m_Name: player_2
   m_TagString: Untagged
@@ -882,12 +915,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ea1737cb362bbd45a98b7d17464292c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileMover
-  board: {fileID: 250786073}
-  startTile: {x: 20, y: 20}
   yOffset: 0.5
-  moveCooldown: 0.25
   moveSpeed: 8
+--- !u!114 &1903012737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903012731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
+  canMoveDiagonally: 0
+  limitMovementToWalkableTiles: 0
+  walkableTileIDs: 
+--- !u!114 &1903012738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903012731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 775fa1ebe3a15e84197a2ca5b4b017d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  board: {fileID: 250786073}
+  mover: {fileID: 1903012736}
+  ruleResolver: {fileID: 1903012737}
+  startTile: {x: 20, y: 20}
   diagonalInputBuffer: 0.075
+  moveCooldown: 0.5
   upKey: 63
   downKey: 64
   leftKey: 61
