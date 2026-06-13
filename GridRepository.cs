@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 public class GridRepository
 {
     public int Columns { get; }
