@@ -1,8 +1,8 @@
-﻿using Assets._Root.Scripts;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    public int ID { get; private set; }
     public Vector2Int GridPosition { get; private set; }
 
     [Header("Tile Visuals")]
@@ -16,8 +16,9 @@ public class Tile : MonoBehaviour
         }
     }
 
-    public void InitializePosition(Vector2Int gridPosition)
+    public void InitializePosition(int id, Vector2Int gridPosition)
     {
+        ID = id;
         GridPosition = gridPosition;
     }
 }

@@ -48,6 +48,16 @@ public class BoardController : MonoBehaviour
         return grid_.IsTileValid(tile);
     }
 
+    public bool IsTileValid(int tileID)
+    {
+        if (grid_ == null)
+        {
+            return false;
+        }
+
+        return grid_.IsTileValid(tileID);
+    }
+
     public Vector3 GetTileWorldPosition(Vector2Int tile)
     {
         if (grid_ == null)
@@ -59,6 +69,17 @@ public class BoardController : MonoBehaviour
         return grid_.GetTileWorldPosition(tile);
     }
 
+    public Vector3 GetTileWorldPosition(int tileID)
+    {
+        if (grid_ == null)
+        {
+            Debug.LogError("Board has not been generated yet.");
+            return Vector3.zero;
+        }
+
+        return grid_.GetTileWorldPosition(tileID);
+    }
+
     public Tile GetBoardTile(Vector2Int tile)
     {
         if (grid_ == null)
@@ -67,6 +88,36 @@ public class BoardController : MonoBehaviour
         }
 
         return grid_.GetBoardTile(tile);
+    }
+
+    public Tile GetBoardTile(int tileID)
+    {
+        if (grid_ == null)
+        {
+            return null;
+        }
+
+        return grid_.GetBoardTile(tileID);
+    }
+
+    public int GetTileID(Vector2Int tile)
+    {
+        if (grid_ == null)
+        {
+            return -1;
+        }
+
+        return grid_.GetTileID(tile);
+    }
+
+    public Vector2Int GetTilePosition(int tileID)
+    {
+        if (grid_ == null)
+        {
+            return new Vector2Int(-1, -1);
+        }
+
+        return grid_.GetTilePosition(tileID);
     }
 
     public Vector2Int ClampToExistingTile(Vector2Int tile)

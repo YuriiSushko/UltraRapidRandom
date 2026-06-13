@@ -97,6 +97,7 @@ public class TileGenerator : MonoBehaviour
         {
             int x = i % columns;
             int z = i / columns;
+            int tileID = x + z * columns;
 
             Vector3 offset = new Vector3(
                 x * stepX,
@@ -112,7 +113,7 @@ public class TileGenerator : MonoBehaviour
                 transform
             );
 
-            tileObject.name = $"Tile_{x}_{z}";
+            tileObject.name = $"Tile_{tileID}_{x}_{z}";
 
             Tile boardTile = tileObject.GetComponent<Tile>();
 
@@ -123,7 +124,7 @@ public class TileGenerator : MonoBehaviour
             }
 
             Vector2Int gridPosition = new Vector2Int(x, z);
-            boardTile.InitializePosition(gridPosition);
+            boardTile.InitializePosition(tileID, gridPosition);
 
             tiles[x, z] = boardTile;
         }

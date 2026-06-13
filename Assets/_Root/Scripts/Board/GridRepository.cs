@@ -31,6 +31,21 @@ public class GridRepository
         return Tiles[tile.x, tile.y] != null;
     }
 
+    public bool IsTileValid(int tileID)
+    {
+        if (tileID < 0 || Columns <= 0)
+        {
+            return false;
+        }
+
+        Vector2Int tile = new Vector2Int(
+            tileID % Columns,
+            tileID / Columns
+        );
+
+        return IsTileValid(tile);
+    }
+
     public Tile GetBoardTile(Vector2Int tile)
     {
         if (!IsTileValid(tile))
@@ -39,6 +54,41 @@ public class GridRepository
         }
 
         return Tiles[tile.x, tile.y];
+    }
+
+    public Tile GetBoardTile(int tileID)
+    {
+        return GetBoardTile(GetTilePosition(tileID));
+    }
+
+    public int GetTileID(Vector2Int tile)
+    {
+        if (!IsTileValid(tile))
+        {
+            return -1;
+        }
+
+        return tile.x + tile.y * Columns;
+    }
+
+    public Vector2Int GetTilePosition(int tileID)
+    {
+        if (tileID < 0 || Columns <= 0)
+        {
+            return new Vector2Int(-1, -1);
+        }
+
+        Vector2Int tile = new Vector2Int(
+            tileID % Columns,
+            tileID / Columns
+        );
+
+        if (!IsTileValid(tileID))
+        {
+            return new Vector2Int(-1, -1);
+        }
+
+        return tile;
     }
 
     public Vector3 GetTileWorldPosition(Vector2Int tile)
@@ -52,6 +102,11 @@ public class GridRepository
         }
 
         return boardTile.transform.position;
+    }
+
+    public Vector3 GetTileWorldPosition(int tileID)
+    {
+        return GetTileWorldPosition(GetTilePosition(tileID));
     }
 
     public Vector2Int ClampToExistingTile(Vector2Int tile)
