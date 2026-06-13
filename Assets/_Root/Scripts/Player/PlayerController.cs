@@ -22,6 +22,15 @@ public class PlayerController : MonoBehaviour
     [Header("Action Controls")]
     public Key activeActionKey = Key.Space;
 
+    [Header("Player Rules")]
+    public int playerID;
+    public bool canMoveDiagonally;
+
+    [Tooltip("When enabled, movement is valid only if the target tile ID is in walkableTileIDs.")]
+    public bool limitMovementToWalkableTiles;
+
+    public int[] walkableTileIDs = new int[0];
+
     public bool HasInitialized { get; private set; }
     public Vector2Int CurrentTile => currentTile_;
 

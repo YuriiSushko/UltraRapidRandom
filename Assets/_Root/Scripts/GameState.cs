@@ -3,27 +3,25 @@ using UnityEngine;
 public class GameState
 {
     private readonly BoardController board_;
-    private readonly PlayerController playerController_;
-    private readonly PlayerMover playerMover_;
+    private readonly PlayerController[] players_;
     private readonly MovementRuleResolver movementRuleResolver_;
     private readonly PlayerActionResolver playerActionResolver_;
     private readonly MovementValidator movementValidator_ = new MovementValidator();
     private readonly BoardMutator boardMutator_ = new BoardMutator();
 
-    private bool hasInitialized_;
     private bool hasLoggedMissingReferences_;
 
     public GameState(
         BoardController board,
-        PlayerController playerController,
-        PlayerMover playerMover,
+        PlayerController[] players,
         MovementRuleResolver movementRuleResolver,
         PlayerActionResolver playerActionResolver
     )
     {
         board_ = board;
-        playerController_ = playerController;
-        playerMover_ = playerMover;
+        players_ = players != null
+            ? players
+            : new PlayerController[0];
         movementRuleResolver_ = movementRuleResolver;
         playerActionResolver_ = playerActionResolver;
     }
@@ -35,57 +33,80 @@ public class GameState
             return;
         }
 
-        TryInitialize();
-
-        if (!hasInitialized_)
+        for (int i = 0; i < players_.Length; i++)
         {
-            return;
+            TickPlayer(players_[i], deltaTime);
         }
-
-        playerController_.TickTimers(deltaTime);
-
-        TryHandlePlayerMovement();
-        TryHandlePlayerActions();
-
-        playerMover_.Tick(deltaTime);
     }
 
     private bool HasRequiredReferences()
     {
-        if (board_ != null && playerController_ != null && playerMover_ != null)
+        if (board_ != null && players_.Length > 0)
         {
             return true;
         }
 
         if (!hasLoggedMissingReferences_)
         {
-            Debug.LogError("GameState is missing BoardController, PlayerController, or PlayerMover.");
+            Debug.LogError("GameState is missing BoardController or player controllers.");
             hasLoggedMissingReferences_ = true;
         }
 
         return false;
     }
 
-    private void TryInitialize()
+    private void TickPlayer(PlayerController playerController, float deltaTime)
     {
-        if (hasInitialized_ || !board_.HasGenerated)
+        if (playerController == null)
         {
             return;
         }
 
-        playerController_.Initialize(board_);
-        playerMover_.WarpTo(board_.GetTileWorldPosition(playerController_.CurrentTile));
-        hasInitialized_ = true;
+        PlayerMover playerMover = playerController.GetComponent<PlayerMover>();
+
+        if (playerMover == null)
+        {
+            Debug.LogError($"{playerController.name}: PlayerMover is missing.");
+            return;
+        }
+
+        TryInitialize(playerController, playerMover);
+
+        if (!playerController.HasInitialized)
+        {
+            return;
+        }
+
+        playerController.TickTimers(deltaTime);
+
+        TryHandlePlayerMovement(playerController, playerMover);
+        TryHandlePlayerActions(playerController);
+
+        playerMover.Tick(deltaTime);
     }
 
-    private void TryHandlePlayerMovement()
+    private void TryInitialize(PlayerController playerController, PlayerMover playerMover)
     {
-        if (playerMover_.IsMoving || !playerController_.CanTryMove())
+        if (playerController.HasInitialized || !board_.HasGenerated)
         {
             return;
         }
 
-        Vector2Int direction = playerController_.GatherMovementInput();
+        playerController.Initialize(board_);
+        playerMover.WarpTo(board_.GetTileWorldPosition(playerController.CurrentTile));
+    }
+
+    private void TryHandlePlayerMovement(
+        PlayerController playerController,
+        PlayerMover playerMover
+    )
+    {
+        if (playerMover.IsMoving || !playerController.CanTryMove())
+        {
+            return;
+        }
+
+        Vector2Int direction = playerController.GatherMovementInput();
 
         if (direction == Vector2Int.zero)
         {
@@ -93,12 +114,12 @@ public class GameState
         }
 
         MovementRuleData ruleData = movementRuleResolver_ != null
-            ? movementRuleResolver_.ResolveRules(playerController_.CurrentTile, direction)
+            ? movementRuleResolver_.ResolveRules(playerController, direction)
             : MovementRuleData.Default;
 
         MovementValidationResult result = movementValidator_.Validate(
             board_,
-            playerController_.CurrentTile,
+            playerController.CurrentTile,
             direction,
             ruleData
         );
@@ -108,14 +129,14 @@ public class GameState
             return;
         }
 
-        playerController_.ApplyMovementResult(result);
-        playerMover_.MoveTo(result.TargetWorldPosition);
-        playerController_.ResetMovementCooldown();
+        playerController.ApplyMovementResult(result);
+        playerMover.MoveTo(result.TargetWorldPosition);
+        playerController.ResetMovementCooldown();
     }
 
-    private void TryHandlePlayerActions()
+    private void TryHandlePlayerActions(PlayerController playerController)
     {
-        PlayerActionInput actionInput = playerController_.GatherActionInput();
+        PlayerActionInput actionInput = playerController.GatherActionInput();
 
         if (!actionInput.HasAnyAction)
         {
@@ -127,7 +148,7 @@ public class GameState
             return;
         }
 
-        int currentTileID = board_.GetTileID(playerController_.CurrentTile);
+        int currentTileID = board_.GetTileID(playerController.CurrentTile);
         BoardMutationData mutationData = playerActionResolver_.ResolveActions(
             actionInput,
             currentTileID
