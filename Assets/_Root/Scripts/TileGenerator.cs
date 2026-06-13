@@ -22,6 +22,18 @@ public class TileGenerator : MonoBehaviour
     public bool generateOnStart = true;
     public bool clearBeforeGenerate = true;
 
+    private int columns;
+    private int rows;
+    private int tilesToGenerate;
+
+    private Vector3[,] tilePositions;
+    private bool[,] tileExists;
+
+    public bool HasGenerated { get; private set; }
+
+    public int Columns => columns;
+    public int Rows => rows;
+
     private void Start()
     {
         if (generateOnStart)
@@ -50,14 +62,12 @@ public class TileGenerator : MonoBehaviour
             ClearTiles();
         }
 
+        HasGenerated = false;
+
         Bounds planeBounds = GetPlaneBounds();
 
         float planeWidth = planeBounds.size.x;
         float planeDepth = planeBounds.size.z;
-
-        int columns;
-        int rows;
-        int tilesToGenerate;
 
         Vector2 finalTileSize = tileSize;
 
@@ -82,6 +92,9 @@ public class TileGenerator : MonoBehaviour
             tilesToGenerate = numberOfTiles;
         }
 
+        tilePositions = new Vector3[columns, rows];
+        tileExists = new bool[columns, rows];
+
         float stepX = finalTileSize.x + spacing.x;
         float stepZ = finalTileSize.y + spacing.y;
 
@@ -101,8 +114,11 @@ public class TileGenerator : MonoBehaviour
                 z * stepZ
             );
 
+            tilePositions[x, z] = position;
+            tileExists[x, z] = true;
+
             GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
-            tile.name = $"Tile_{i + 1}";
+            tile.name = $"Tile_{x}_{z}";
 
             if (scaleTilesToFitExactly)
             {
@@ -114,7 +130,71 @@ public class TileGenerator : MonoBehaviour
             }
         }
 
+        HasGenerated = true;
+
         Debug.Log($"Generated {tilesToGenerate} tiles. Grid: {columns} x {rows}");
+    }
+
+    public bool IsTileValid(Vector2Int tile)
+    {
+        if (!HasGenerated)
+        {
+            return false;
+        }
+
+        if (tile.x < 0 || tile.x >= columns)
+        {
+            return false;
+        }
+
+        if (tile.y < 0 || tile.y >= rows)
+        {
+            return false;
+        }
+
+        return tileExists[tile.x, tile.y];
+    }
+
+    public Vector3 GetTileWorldPosition(Vector2Int tile)
+    {
+        if (!IsTileValid(tile))
+        {
+            Debug.LogError($"Invalid tile position: {tile}");
+            return Vector3.zero;
+        }
+
+        return tilePositions[tile.x, tile.y];
+    }
+
+    public Vector2Int ClampToExistingTile(Vector2Int tile)
+    {
+        if (!HasGenerated)
+        {
+            return Vector2Int.zero;
+        }
+
+        tile.x = Mathf.Clamp(tile.x, 0, columns - 1);
+        tile.y = Mathf.Clamp(tile.y, 0, rows - 1);
+
+        if (IsTileValid(tile))
+        {
+            return tile;
+        }
+
+        for (int y = 0; y < rows; y++)
+        {
+            for (int x = 0; x < columns; x++)
+            {
+                Vector2Int fallbackTile = new Vector2Int(x, y);
+
+                if (IsTileValid(fallbackTile))
+                {
+                    return fallbackTile;
+                }
+            }
+        }
+
+        return Vector2Int.zero;
     }
 
     private Bounds GetPlaneBounds()
@@ -132,6 +212,11 @@ public class TileGenerator : MonoBehaviour
     [ContextMenu("Clear Tiles")]
     public void ClearTiles()
     {
+        HasGenerated = false;
+
+        tilePositions = null;
+        tileExists = null;
+
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
             if (Application.isPlaying)
