@@ -244,7 +244,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ea1737cb362bbd45a98b7d17464292c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileMover
-  tileGenerator: {fileID: 250786071}
+  board: {fileID: 0}
   startTile: {x: 0, y: 0}
   yOffset: 0.5
   moveCooldown: 0.25
@@ -263,6 +263,7 @@ GameObject:
   m_Component:
   - component: {fileID: 250786072}
   - component: {fileID: 250786071}
+  - component: {fileID: 250786073}
   m_Layer: 0
   m_Name: TileGenerator
   m_TagString: Untagged
@@ -284,13 +285,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TileGenerator
   plane: {fileID: 1210787657}
   tilePrefab: {fileID: 6234940043146584442, guid: 04263c166f3e1ed45ac1a2c007eb94ca, type: 3}
-  numberOfTiles: 64
-  tileSize: {x: 1, y: 1}
+  numberOfTiles: 100
   spacing: {x: 0.1, y: 0.1}
   yOffset: 0.02
   fillFullPlane: 1
-  scaleTilesToFitExactly: 1
-  generateOnStart: 1
   clearBeforeGenerate: 1
 --- !u!4 &250786072
 Transform:
@@ -307,6 +305,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &250786073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 250786070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c78e32d0c96acf44e99134716dd25156, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoardController
+  generateOnStart: 1
+  tileGenerator: {fileID: 250786071}
+  tileLayoutProvider: {fileID: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -858,7 +871,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ea1737cb362bbd45a98b7d17464292c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileMover
-  tileGenerator: {fileID: 250786071}
+  board: {fileID: 0}
   startTile: {x: 20, y: 20}
   yOffset: 0.5
   moveCooldown: 0.25

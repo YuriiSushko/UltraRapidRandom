@@ -1,4 +1,4 @@
-using UnityEngine;
+using Assets._Root.Scripts;
 
 public abstract class GameGoal
 {

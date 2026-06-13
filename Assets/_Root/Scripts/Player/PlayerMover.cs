@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public class PlayerMover : MonoBehaviour
 {
     [Header("Board")]
-    public TileGenerator tileGenerator;
+    public BoardController board;
     public Vector2Int startTile = new Vector2Int(0, 0);
 
     [Header("Movement")]
@@ -25,24 +25,24 @@ public class PlayerMover : MonoBehaviour
 
     private IEnumerator Start()
     {
-        if (tileGenerator == null)
+        if (board == null)
         {
-            Debug.LogError($"{name}: TileGenerator is not assigned.");
+            Debug.LogError($"{name}: BoardController is not assigned.");
             yield break;
         }
 
-        while (!tileGenerator.HasGenerated)
+        while (!board.HasGenerated)
         {
             yield return null;
         }
 
-        currentTile = tileGenerator.ClampToExistingTile(startTile);
+        currentTile = board.ClampToExistingTile(startTile);
         MoveToTile(currentTile);
     }
 
     private void Update()
     {
-        if (tileGenerator == null || !tileGenerator.HasGenerated)
+        if (board == null || !board.HasGenerated)
         {
             return;
         }
@@ -71,7 +71,7 @@ public class PlayerMover : MonoBehaviour
 
         Vector2Int targetTile = currentTile + direction;
 
-        if (!tileGenerator.IsTileValid(targetTile))
+        if (!board.IsTileValid(targetTile))
         {
             return;
         }
@@ -104,7 +104,7 @@ public class PlayerMover : MonoBehaviour
 
         if (!Enum.IsDefined(typeof(Key), key))
         {
-            Debug.LogWarning($"{name}: Invalid key value detected: {key}. Reassign keys in the Inspector.");
+            Debug.LogWarning($"{name}: Invalid key value: {key}. Reassign keys in Inspector.");
             return false;
         }
 
@@ -113,7 +113,7 @@ public class PlayerMover : MonoBehaviour
 
     private void MoveToTile(Vector2Int tile)
     {
-        Vector3 tilePosition = tileGenerator.GetTileWorldPosition(tile);
+        Vector3 tilePosition = board.GetTileWorldPosition(tile);
 
         transform.position = new Vector3(
             tilePosition.x,
