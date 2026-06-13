@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 211189791}
   - component: {fileID: 211189790}
   - component: {fileID: 211189789}
+  - component: {fileID: 211189793}
   m_Layer: 0
   m_Name: player_1
   m_TagString: Untagged
@@ -225,12 +226,33 @@ Transform:
   m_GameObject: {fileID: 211189788}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.02, y: 0.44, z: -1.37}
+  m_LocalPosition: {x: -10.36, y: 0.44, z: -10.42}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &211189793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 211189788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ea1737cb362bbd45a98b7d17464292c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TileMover
+  tileGenerator: {fileID: 250786071}
+  startTile: {x: 0, y: 0}
+  yOffset: 0.5
+  moveCooldown: 0.25
+  allowDiagonalMovement: 1
+  upKey: 37
+  downKey: 33
+  leftKey: 15
+  rightKey: 18
 --- !u!1 &250786070
 GameObject:
   m_ObjectHideFlags: 0
@@ -262,7 +284,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TileGenerator
   plane: {fileID: 1210787657}
   tilePrefab: {fileID: 6234940043146584442, guid: 04263c166f3e1ed45ac1a2c007eb94ca, type: 3}
-  numberOfTiles: 512
+  numberOfTiles: 64
   tileSize: {x: 1, y: 1}
   spacing: {x: 0.1, y: 0.1}
   yOffset: 0.02
@@ -723,6 +745,7 @@ GameObject:
   - component: {fileID: 1903012734}
   - component: {fileID: 1903012733}
   - component: {fileID: 1903012732}
+  - component: {fileID: 1903012736}
   m_Layer: 0
   m_Name: player_2
   m_TagString: Untagged
@@ -817,12 +840,33 @@ Transform:
   m_GameObject: {fileID: 1903012731}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.89, y: 0.42, z: 2.07}
+  m_LocalPosition: {x: 10.21, y: 0.42, z: 10.21}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1903012736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903012731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ea1737cb362bbd45a98b7d17464292c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TileMover
+  tileGenerator: {fileID: 250786071}
+  startTile: {x: 20, y: 20}
+  yOffset: 0.5
+  moveCooldown: 0.25
+  allowDiagonalMovement: 1
+  upKey: 63
+  downKey: 64
+  leftKey: 61
+  rightKey: 62
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
