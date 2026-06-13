@@ -21,4 +21,24 @@ public class Tile : MonoBehaviour
         ID = id;
         GridPosition = gridPosition;
     }
+
+    public void SetMaterial(Material material)
+    {
+        if (material == null)
+        {
+            return;
+        }
+
+        if (tileRenderer == null)
+        {
+            tileRenderer = GetComponent<Renderer>();
+        }
+
+        if (tileRenderer == null)
+        {
+            return;
+        }
+
+        tileRenderer.material = material;
+    }
 }

@@ -15,12 +15,12 @@ public class PlayerMover : MonoBehaviour
         targetPosition_ = transform.position;
     }
 
-    private void Update()
+    public void Tick(float deltaTime)
     {
         transform.position = Vector3.MoveTowards(
             transform.position,
             targetPosition_,
-            moveSpeed * Time.deltaTime
+            moveSpeed * deltaTime
         );
     }
 

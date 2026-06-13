@@ -1,110 +1,72 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(PlayerMover))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("References")]
-    public BoardController board;
-    public PlayerMover mover;
-    public MovementRuleResolver ruleResolver;
-
     [Header("Starting Tile")]
     public Vector2Int startTile = Vector2Int.zero;
 
-    [Header("Input")]
+    [Header("Movement Input")]
     [Tooltip("Small delay that allows diagonal input from two separate key presses.")]
     public float diagonalInputBuffer = 0.075f;
     public float moveCooldown = 0.5f;
 
-    [Header("Controls")]
+    [Header("Movement Controls")]
     public Key upKey = Key.W;
     public Key downKey = Key.S;
     public Key leftKey = Key.A;
     public Key rightKey = Key.D;
 
-    private readonly MovementValidator movementValidator_ = new MovementValidator();
+    [Header("Action Controls")]
+    public Key activeActionKey = Key.Space;
+
+    public bool HasInitialized { get; private set; }
+    public Vector2Int CurrentTile => currentTile_;
 
     private Vector2Int currentTile_;
-    private float nextMoveTime_;
+    private float movementCooldownRemaining_;
 
     private bool hasPendingKey_;
     private Key pendingKey_;
     private float pendingKeyTime_;
 
-    private IEnumerator Start()
+    public void Initialize(BoardController board)
     {
-        if (mover == null)
+        if (board == null || !board.HasGenerated)
         {
-            mover = GetComponent<PlayerMover>();
-        }
-
-        if (board == null)
-        {
-            Debug.LogError($"{name}: BoardController is not assigned.");
-            yield break;
-        }
-
-        if (mover == null)
-        {
-            Debug.LogError($"{name}: PlayerMover is not assigned.");
-            yield break;
-        }
-
-        while (!board.HasGenerated)
-        {
-            yield return null;
+            return;
         }
 
         currentTile_ = board.ClampToExistingTile(startTile);
-        mover.WarpTo(board.GetTileWorldPosition(currentTile_));
+        movementCooldownRemaining_ = 0f;
+        hasPendingKey_ = false;
+        HasInitialized = true;
     }
 
-    private void Update()
+    public void TickTimers(float deltaTime)
     {
-        if (board == null || mover == null || !board.HasGenerated)
+        if (movementCooldownRemaining_ <= 0f)
         {
+            movementCooldownRemaining_ = 0f;
             return;
         }
 
-        if (mover.IsMoving || Time.time < nextMoveTime_)
-        {
-            return;
-        }
-
-        Vector2Int direction = GatherMovementDirection();
-
-        if (direction == Vector2Int.zero)
-        {
-            return;
-        }
-
-        MovementRuleData ruleData = ruleResolver != null
-            ? ruleResolver.ResolveRules(currentTile_, direction)
-            : MovementRuleData.Default;
-
-        MovementValidationResult result = movementValidator_.Validate(
-            board,
-            currentTile_,
-            direction,
-            ruleData
+        movementCooldownRemaining_ = Mathf.Max(
+            0f,
+            movementCooldownRemaining_ - deltaTime
         );
-
-        if (!result.IsValid)
-        {
-            return;
-        }
-
-        currentTile_ = result.TargetTile;
-        mover.MoveTo(result.TargetWorldPosition);
-        nextMoveTime_ = Time.time + moveCooldown;
     }
 
-    private Vector2Int GatherMovementDirection()
+    public bool CanTryMove()
     {
-        if (Keyboard.current == null)
+        return HasInitialized && movementCooldownRemaining_ <= 0f;
+    }
+
+    public Vector2Int GatherMovementInput()
+    {
+        if (!CanTryMove() || Keyboard.current == null)
         {
             return Vector2Int.zero;
         }
@@ -132,6 +94,34 @@ public class PlayerController : MonoBehaviour
         hasPendingKey_ = false;
 
         return direction;
+    }
+
+    public PlayerActionInput GatherActionInput()
+    {
+        if (!HasInitialized)
+        {
+            return PlayerActionInput.None;
+        }
+
+        return new PlayerActionInput(
+            hasPassiveAction: true,
+            hasActiveAction: WasKeyPressedThisFrame(activeActionKey)
+        );
+    }
+
+    public void ApplyMovementResult(MovementValidationResult result)
+    {
+        if (!result.IsValid)
+        {
+            return;
+        }
+
+        currentTile_ = result.TargetTile;
+    }
+
+    public void ResetMovementCooldown()
+    {
+        movementCooldownRemaining_ = moveCooldown;
     }
 
     private Key GetFirstPressedKey()

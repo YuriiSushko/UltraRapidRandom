@@ -130,6 +130,23 @@ public class BoardController : MonoBehaviour
         return grid_.ClampToExistingTile(tile);
     }
 
+    public void ApplyMutation(BoardMutation mutation)
+    {
+        SetTileMaterial(mutation.TileID, mutation.TileMaterial);
+    }
+
+    public void SetTileMaterial(int tileID, Material material)
+    {
+        Tile tile = GetBoardTile(tileID);
+
+        if (tile == null)
+        {
+            return;
+        }
+
+        tile.SetMaterial(material);
+    }
+
     [ContextMenu("Clear Board")]
     public void ClearBoard()
     {
