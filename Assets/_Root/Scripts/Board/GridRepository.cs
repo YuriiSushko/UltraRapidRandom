@@ -1,23 +1,19 @@
 ﻿using UnityEngine;
 
-public class TileGrid
+public class GridRepository
 {
     public int Columns { get; }
     public int Rows { get; }
-    public int TilesToGenerate { get; }
+    public Tile[,] Tiles { get; }
 
-    public BoardTile[,] Tiles { get; }
-
-    public TileGrid(
+    public GridRepository(
         int columns,
         int rows,
-        int tilesToGenerate,
-        BoardTile[,] tiles
+        Tile[,] tiles
     )
     {
         Columns = columns;
         Rows = rows;
-        TilesToGenerate = tilesToGenerate;
         Tiles = tiles;
     }
 
@@ -36,7 +32,7 @@ public class TileGrid
         return Tiles[tile.x, tile.y] != null;
     }
 
-    public BoardTile GetBoardTile(Vector2Int tile)
+    public Tile GetBoardTile(Vector2Int tile)
     {
         if (!IsTileValid(tile))
         {
@@ -48,7 +44,7 @@ public class TileGrid
 
     public Vector3 GetTileWorldPosition(Vector2Int tile)
     {
-        BoardTile boardTile = GetBoardTile(tile);
+        Tile boardTile = GetBoardTile(tile);
 
         if (boardTile == null)
         {

@@ -18,10 +18,10 @@ public class TileGenerator : MonoBehaviour
     [Header("Generation")]
     public bool clearBeforeGenerate = true;
 
-    public TileGrid LastGeneratedGrid { get; private set; }
+    public GridRepository LastGeneratedGrid { get; private set; }
 
     [ContextMenu("Generate Tiles Only")]
-    public TileGrid GenerateTiles()
+    public GridRepository GenerateTiles()
     {
         if (plane == null)
         {
@@ -79,7 +79,7 @@ public class TileGenerator : MonoBehaviour
             tilesToGenerate = numberOfTiles;
         }
 
-        BoardTile[,] tiles = new BoardTile[columns, rows];
+        Tile[,] tiles = new Tile[columns, rows];
 
         float stepX = prefabTileSize.x + spacing.x;
         float stepZ = prefabTileSize.y + spacing.y;
@@ -114,7 +114,7 @@ public class TileGenerator : MonoBehaviour
 
             tileObject.name = $"Tile_{x}_{z}";
 
-            BoardTile boardTile = tileObject.GetComponent<BoardTile>();
+            Tile boardTile = tileObject.GetComponent<Tile>();
 
             if (boardTile == null)
             {
@@ -128,10 +128,9 @@ public class TileGenerator : MonoBehaviour
             tiles[x, z] = boardTile;
         }
 
-        LastGeneratedGrid = new TileGrid(
+        LastGeneratedGrid = new GridRepository(
             columns,
             rows,
-            tilesToGenerate,
             tiles
         );
 

@@ -2,155 +2,91 @@
 
 public class BoardController : MonoBehaviour
 {
-    [Header("Generation")]
-    public bool generateOnStart = true;
+    private TileGenerator tileGenerator_;
+    private TileLayoutProvider tileLayoutProvider_;
 
-    [Header("References")]
-    public TileGenerator tileGenerator;
-    public TileLayoutProvider tileLayoutProvider;
+    private GridRepository grid_;
 
-    private TileGrid grid;
+    public bool HasGenerated => grid_ != null;
 
-    public bool HasGenerated => grid != null;
-
-    public int Columns => grid != null ? grid.Columns : 0;
-    public int Rows => grid != null ? grid.Rows : 0;
-
-    private void Awake()
-    {
-        if (tileGenerator == null)
-        {
-            tileGenerator = GetComponent<TileGenerator>();
-        }
-    }
+    public int Columns => grid_ != null ? grid_.Columns : 0;
+    public int Rows => grid_ != null ? grid_.Rows : 0;
 
     private void Start()
     {
-        if (generateOnStart)
-        {
-            BuildBoard();
-        }
+        tileGenerator_ = GetComponent<TileGenerator>();
+        BuildBoard();
     }
 
     [ContextMenu("Build Board")]
     public void BuildBoard()
     {
-        if (tileGenerator == null)
+        if (tileGenerator_ == null)
         {
             Debug.LogError("TileGenerator is not assigned.");
             return;
         }
 
-        grid = tileGenerator.GenerateTiles();
+        grid_ = tileGenerator_.GenerateTiles();
 
-        if (grid == null)
+        if (grid_ == null)
         {
             Debug.LogError("Tile generation failed.");
             return;
         }
 
-        ApplyTileRules();
-
         Debug.Log("Board built successfully.");
-    }
-
-    private void ApplyTileRules()
-    {
-        TileRule[] rules = GenerateRules();
-
-        for (int i = 0; i < grid.TilesToGenerate; i++)
-        {
-            int x = i % grid.Columns;
-            int y = i / grid.Columns;
-
-            BoardTile boardTile = grid.Tiles[x, y];
-
-            if (boardTile == null)
-            {
-                continue;
-            }
-
-            boardTile.SetRule(rules[i]);
-        }
-    }
-
-    private TileRule[] GenerateRules()
-    {
-        if (tileLayoutProvider != null)
-        {
-            TileRule[] generatedRules = tileLayoutProvider.GenerateTileRules(
-                grid.Columns,
-                grid.Rows,
-                grid.TilesToGenerate
-            );
-
-            if (generatedRules != null && generatedRules.Length >= grid.TilesToGenerate)
-            {
-                return generatedRules;
-            }
-
-            Debug.LogWarning("TileLayoutProvider returned invalid rules. Falling back to empty rules.");
-        }
-
-        TileRule[] emptyRules = new TileRule[grid.TilesToGenerate];
-
-        for (int i = 0; i < emptyRules.Length; i++)
-        {
-            emptyRules[i] = TileRule.Empty();
-        }
-
-        return emptyRules;
     }
 
     public bool IsTileValid(Vector2Int tile)
     {
-        if (grid == null)
+        if (grid_ == null)
         {
             return false;
         }
 
-        return grid.IsTileValid(tile);
+        return grid_.IsTileValid(tile);
     }
 
     public Vector3 GetTileWorldPosition(Vector2Int tile)
     {
-        if (grid == null)
+        if (grid_ == null)
         {
             Debug.LogError("Board has not been generated yet.");
             return Vector3.zero;
         }
 
-        return grid.GetTileWorldPosition(tile);
+        return grid_.GetTileWorldPosition(tile);
     }
 
-    public BoardTile GetBoardTile(Vector2Int tile)
+    public Tile GetBoardTile(Vector2Int tile)
     {
-        if (grid == null)
+        if (grid_ == null)
         {
             return null;
         }
 
-        return grid.GetBoardTile(tile);
+        return grid_.GetBoardTile(tile);
     }
 
     public Vector2Int ClampToExistingTile(Vector2Int tile)
     {
-        if (grid == null)
+        if (grid_ == null)
         {
             return Vector2Int.zero;
         }
 
-        return grid.ClampToExistingTile(tile);
+        return grid_.ClampToExistingTile(tile);
     }
 
     [ContextMenu("Clear Board")]
     public void ClearBoard()
     {
-        grid = null;
+        grid_ = null;
 
-        if (tileGenerator != null)
+        if (tileGenerator_ != null)
         {
-            tileGenerator.ClearTiles();
+            tileGenerator_.ClearTiles();
         }
     }
 }
