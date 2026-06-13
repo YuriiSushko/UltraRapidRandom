@@ -1,12 +1,5 @@
 using Assets._Root.Scripts;
 
-public enum RuleCategory
-{
-    Move,
-    Environment,
-    WildCard
-}
-
 public abstract class GameRule
 {
     public string RuleName { get; protected set; }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets._Root.Scripts;
+using UnityEngine;
 
 public class BoardTile : MonoBehaviour
 {
@@ -50,10 +51,10 @@ public class BoardTile : MonoBehaviour
 
         Sprite iconToUse = Rule.category switch
         {
-            TileCategory.Move => moveIcon,
-            TileCategory.Environment => environmentIcon,
-            TileCategory.Chaotic => chaoticIcon,
-            TileCategory.Goal => goalIcon,
+            RuleCategory.Move => moveIcon,
+            RuleCategory.Environment => environmentIcon,
+            RuleCategory.Chaotic => chaoticIcon,
+            RuleCategory.Goal => goalIcon,
             _ => emptyIcon
         };
 

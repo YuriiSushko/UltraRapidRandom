@@ -1,27 +1,7 @@
-﻿using UnityEngine;
+﻿using Assets._Root.Scripts;
+using UnityEngine;
 
-public enum TileCategory
-{
-    Empty,
-    Move,
-    Environment,
-    Chaotic,
-    Goal
-}
-
-public enum TileSubtype
-{
-    None,
-    MoveDir,
-    MoveSpd,
-    MoveDist
-}
-
-public enum TileActivationType
-{
-    Passive,
-    Active
-}
+// Later support for object on tiles. Maybe as a separate class, idk
 
 [System.Serializable]
 public class TileRule
@@ -31,9 +11,9 @@ public class TileRule
     [TextArea]
     public string description;
 
-    public TileCategory category;
-    public TileSubtype subtype;
-    public TileActivationType activationType;
+    public RuleCategory category;
+    public RuleSubtype subtype;
+    public RuleActivationType activationType;
 
     // Later should be factory or ScriptableObject-based
     // 
@@ -43,9 +23,9 @@ public class TileRule
         {
             displayName = "Empty Tile",
             description = "No special rule.",
-            category = TileCategory.Empty,
-            subtype = TileSubtype.None,
-            activationType = TileActivationType.Passive
+            category = RuleCategory.Empty,
+            subtype = RuleSubtype.None,
+            activationType = RuleActivationType.Passive
         };
     }
 }
