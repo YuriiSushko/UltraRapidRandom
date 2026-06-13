@@ -16,6 +16,9 @@ public class Game : MonoBehaviour
         {
             uiManager_.UpdatePlayer1UI("P1 rule", "P1 goal");
             uiManager_.UpdatePlayer2UI("P2 rule", "P2 goal");
+            
+            uiManager_.UpdateRoundUI(1);
+            uiManager_.TriggerNewRoundPopup(1); //for testing
         }
         else
         {
