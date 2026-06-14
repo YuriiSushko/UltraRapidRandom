@@ -32,12 +32,12 @@ public class MovementRuleResolver : MonoBehaviour
     {
         if (directionRule == MovementDirectionRule.CanMoveDiagonally)
         {
-            return "Diagonal ok";
+            return "Move all directions";
         }
 
         if (directionRule == MovementDirectionRule.OnlyMoveDiagonally)
         {
-            return "Diagonal only";
+            return "Diagonal move only";
         }
 
         return "No diagonal";
