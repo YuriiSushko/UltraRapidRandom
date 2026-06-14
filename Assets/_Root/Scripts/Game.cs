@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
+[RequireComponent(typeof(GoalManager))]
 public class Game : MonoBehaviour
 {
     [Header("References")]
@@ -9,6 +11,10 @@ public class Game : MonoBehaviour
 
     [SerializeField] private UIManager uiManager_;
     [SerializeField] private GoalManager goalManager_;
+    [SerializeField] private PickupController pickupController_;
+
+    [Header("Events")]
+    public UnityEvent<int> roundCompleted = new UnityEvent<int>();
 
     private int currentRound_ = 1;
     private ActiveGoal player1Goal_;
@@ -22,7 +28,8 @@ public class Game : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
-        gameState_ = new GameState(this, boardController, goalManager_, players);
+        gameState_ = new GameState(this, boardController, goalManager_, pickupController_, players);
+        gameState_.RoundCompleted += HandleGoalManagerRoundEnd;
     }
 
     private void Start()
@@ -75,12 +82,13 @@ public class Game : MonoBehaviour
         }
 
         ConfigurePlayersForGoals();
+        ConfigurePickupsForRound();
 
         if (uiManager_ != null)
         {
             uiManager_.UpdateRoundUI(currentRound_);
-            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1GoalDescription);
-            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2GoalDescription);
+            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), GetPlayerGoalText(0));
+            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), GetPlayerGoalText(1));
         }
     }
 
@@ -175,6 +183,38 @@ public class Game : MonoBehaviour
         return new List<string>();
     }
 
+    private string GetPlayerGoalText(int playerIndex)
+    {
+        ActiveGoal goal = GetPlayerGoal(playerIndex);
+
+        if (goal == null)
+        {
+            return string.Empty;
+        }
+
+        if (goal.TargetCount <= 0)
+        {
+            return goal.Description;
+        }
+
+        return $"{goal.Description} ({goal.CurrentCount}/{goal.TargetCount})";
+    }
+
+    private ActiveGoal GetPlayerGoal(int playerIndex)
+    {
+        if (playerIndex == 0)
+        {
+            return player1Goal_;
+        }
+
+        if (playerIndex == 1)
+        {
+            return player2Goal_;
+        }
+
+        return null;
+    }
+
     private List<string> SplitRuleSummary(string summary)
     {
         List<string> rules = new List<string>();
@@ -239,6 +279,7 @@ public class Game : MonoBehaviour
     private void TriggerRoundEnd(int winningPlayerNumber)
     {
         currentRound_++;
+        roundCompleted.Invoke(winningPlayerNumber);
 
         if (uiManager_ != null)
         {
@@ -269,13 +310,13 @@ public class Game : MonoBehaviour
         {
             player1Rules_ = rules;
             if (uiManager_ != null && player1Goal_ != null)
-                uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1Goal_.Description);
+                uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), GetPlayerGoalText(0));
         }
         else if (playerIndex == 1)
         {
             player2Rules_ = rules;
             if (uiManager_ != null && player2Goal_ != null)
-                uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2Goal_.Description);
+                uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), GetPlayerGoalText(1));
         }
     }
 
@@ -288,11 +329,11 @@ public class Game : MonoBehaviour
 
         if (playerIndex == 0 && player1Goal_ != null)
         {
-            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1Goal_.Description);
+            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), GetPlayerGoalText(0));
         }
         else if (playerIndex == 1 && player2Goal_ != null)
         {
-            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2Goal_.Description);
+            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), GetPlayerGoalText(1));
         }
     }
 
@@ -305,6 +346,27 @@ public class Game : MonoBehaviour
         ConfigurePlayerForGoal(GetPlayer(1), player2Goal_);
     }
 
+    private void ConfigurePickupsForRound()
+    {
+        if (pickupController_ == null || boardController == null || !boardController.HasGenerated)
+        {
+            return;
+        }
+
+        pickupController_.Initialize(boardController);
+        pickupController_.StartRound(players, HasCollectableGoal());
+    }
+
+    private bool HasCollectableGoal()
+    {
+        return IsCollectableGoal(player1Goal_) || IsCollectableGoal(player2Goal_);
+    }
+
+    private bool IsCollectableGoal(ActiveGoal goal)
+    {
+        return goal != null && goal.Type == GoalType.PickUpObjects;
+    }
+
     private void ConfigurePlayerForGoal(PlayerController player, ActiveGoal goal)
     {
         if (player == null)
@@ -315,6 +377,7 @@ public class Game : MonoBehaviour
         player.ResolveReferences();
 
         ResetPlayerRules(player);
+        AssignRandomMovementRule(player);
 
         if (goal != null && goal.Type == GoalType.PaintTiles && player.PlayerActionResolver != null)
         {
@@ -337,11 +400,31 @@ public class Game : MonoBehaviour
         }
     }
 
+    private void AssignRandomMovementRule(PlayerController player)
+    {
+        if (player.MovementRuleResolver == null)
+        {
+            return;
+        }
+
+        int movementRuleCount = System.Enum.GetValues(typeof(MovementDirectionRule)).Length;
+        int firstNonDefaultRule = 1;
+        player.MovementRuleResolver.directionRule = (MovementDirectionRule)Random.Range(
+            firstNonDefaultRule,
+            movementRuleCount
+        );
+        player.MovementRuleResolver.tileRule = MovementTileRule.AnyTile;
+    }
+
     private void ResolveReferences()
     {
         if (boardController == null) boardController = GetComponent<BoardController>();
         if (goalManager_ == null) goalManager_ = GetComponent<GoalManager>();
         if (goalManager_ == null) goalManager_ = FindFirstObjectByType<GoalManager>();
+        if (goalManager_ == null) goalManager_ = gameObject.AddComponent<GoalManager>();
+        if (pickupController_ == null) pickupController_ = GetComponent<PickupController>();
+        if (pickupController_ == null) pickupController_ = FindFirstObjectByType<PickupController>();
+        if (pickupController_ == null) pickupController_ = gameObject.AddComponent<PickupController>();
         if (players == null || players.Length == 0)
         {
             players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);

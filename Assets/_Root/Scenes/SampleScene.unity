@@ -423,6 +423,7 @@ GameObject:
   - component: {fileID: 250786071}
   - component: {fileID: 250786073}
   - component: {fileID: 250786074}
+  - component: {fileID: 250786075}
   m_Layer: 0
   m_Name: TileGenerator
   m_TagString: Untagged
@@ -494,6 +495,24 @@ MonoBehaviour:
   - {fileID: 1464599410}
   uiManager_: {fileID: 401041263}
   goalManager_: {fileID: 0}
+  pickupController_: {fileID: 1399890342}
+  roundCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &250786075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 250786070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91ddd101ed59490b9e167ddc7efb4fa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoalManager
+  minTargetCount: 3
+  maxTargetCount: 8
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0

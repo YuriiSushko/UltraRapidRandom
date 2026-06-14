@@ -114,11 +114,6 @@ public class PlayerActionResolver : MonoBehaviour
             return;
         }
 
-        if (context.Board != null && context.Board.GetTileMaterial(context.CurrentTileID) == passivePaintMaterial)
-        {
-            return;
-        }
-
         AddTileMaterialMutation(
             boardMutations,
             context.CurrentTileID,
