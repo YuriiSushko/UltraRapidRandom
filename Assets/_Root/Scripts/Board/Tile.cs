@@ -8,18 +8,19 @@ public class Tile : MonoBehaviour
     [Header("Tile Visuals")]
     public Renderer tileRenderer;
 
+    private Material defaultMaterial_;
+
     private void Awake()
     {
-        if (tileRenderer == null)
-        {
-            tileRenderer = GetComponent<Renderer>();
-        }
+        ResolveRenderer();
+        CaptureDefaultMaterial();
     }
 
     public void InitializePosition(int id, Vector2Int gridPosition)
     {
         ID = id;
         GridPosition = gridPosition;
+        CaptureDefaultMaterial();
     }
 
     public void SetMaterial(Material material)
@@ -44,13 +45,38 @@ public class Tile : MonoBehaviour
 
     public Material GetMaterial()
     {
-        if (tileRenderer == null)
-        {
-            tileRenderer = GetComponent<Renderer>();
-        }
+        ResolveRenderer();
 
         return tileRenderer != null
             ? tileRenderer.sharedMaterial
             : null;
+    }
+
+    public void ResetMaterial()
+    {
+        if (defaultMaterial_ == null)
+        {
+            return;
+        }
+
+        SetMaterial(defaultMaterial_);
+    }
+
+    private void CaptureDefaultMaterial()
+    {
+        ResolveRenderer();
+
+        if (tileRenderer != null && defaultMaterial_ == null)
+        {
+            defaultMaterial_ = tileRenderer.sharedMaterial;
+        }
+    }
+
+    private void ResolveRenderer()
+    {
+        if (tileRenderer == null)
+        {
+            tileRenderer = GetComponent<Renderer>();
+        }
     }
 }

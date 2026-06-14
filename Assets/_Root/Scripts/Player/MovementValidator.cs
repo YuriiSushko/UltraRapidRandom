@@ -28,11 +28,6 @@ public class MovementValidator
 
         int targetTileID = board.GetTileID(targetTile);
 
-        if (!ruleData.CanWalkOnTile(targetTileID, board.GetTileMaterial(targetTileID)))
-        {
-            return MovementValidationResult.Invalid();
-        }
-
         return MovementValidationResult.Valid(
             targetTile,
             targetTileID,

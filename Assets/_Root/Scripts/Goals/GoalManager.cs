@@ -9,40 +9,23 @@ public class GoalManager : MonoBehaviour
 
     private HashSet<int> paintedTilesP1_ = new HashSet<int>();
     private HashSet<int> paintedTilesP2_ = new HashSet<int>();
-    private HashSet<int> steppedSpecialTilesP1_ = new HashSet<int>();
-    private HashSet<int> steppedSpecialTilesP2_ = new HashSet<int>();
     private Dictionary<int, int> paintOwnerByTileID_ = new Dictionary<int, int>();
-
-    private HashSet<int> specialTileIDs_ = new HashSet<int>();
-    private HashSet<int> spawnedItemTileIDs_ = new HashSet<int>();
 
     private ActiveGoal p1Goal_;
     private ActiveGoal p2Goal_;
-    public void InitializeMapObjectives(BoardController board)
-    {
-        specialTileIDs_.Clear();
-        spawnedItemTileIDs_.Clear();
-
-        int totalTiles = board.Columns * board.Rows;
-        if (totalTiles <= 0) return;
-
-        for (int i = 0; i < totalTiles; i++)
-        {
-            if (i % 6 == 0) specialTileIDs_.Add(i);
-            else if (i % 11 == 0) spawnedItemTileIDs_.Add(i);
-        }
-    }
 
     public void RollNewGoals(out string p1Desc, out string p2Desc)
     {
         paintedTilesP1_.Clear();
         paintedTilesP2_.Clear();
-        steppedSpecialTilesP1_.Clear();
-        steppedSpecialTilesP2_.Clear();
         paintOwnerByTileID_.Clear();
 
-        p1Goal_ = GenerateRandomGoal();
-        p2Goal_ = GenerateRandomGoal();
+        // If either previous goal was CatchOpponent, disallow CatchOpponent for both new goals.
+        bool previousHadCatch = (p1Goal_ != null && p1Goal_.Type == GoalType.CatchOpponent)
+                              || (p2Goal_ != null && p2Goal_.Type == GoalType.CatchOpponent);
+
+        p1Goal_ = GenerateRandomGoal(allowCatch: !previousHadCatch);
+        p2Goal_ = GenerateRandomGoal(allowCatch: !previousHadCatch);
 
         p1Desc = p1Goal_.Description;
         p2Desc = p2Goal_.Description;
@@ -79,27 +62,34 @@ public class GoalManager : MonoBehaviour
         return activeGoal.TargetCount > 0;
     }
 
-    private ActiveGoal GenerateRandomGoal()
+    private ActiveGoal GenerateRandomGoal(bool allowCatch = true)
     {
-        GoalType selected = (GoalType)Random.Range(0, 4);
+        GoalType selected;
+
+        if (!allowCatch)
+        {
+            // Don't allow CatchOpponent — pick a non-catch type.
+            selected = GoalType.PaintTiles;
+        }
+        else
+        {
+            selected = (GoalType)Random.Range(0, 2);
+        }
+
         int targetValue = Random.Range(minTargetCount, maxTargetCount + 1);
 
         switch (selected)
         {
             case GoalType.CatchOpponent:
                 return new ActiveGoal(selected, "Catch your opponent! Move onto their square.");
-            case GoalType.PickUpObjects:
-                return new ActiveGoal(selected, $"Collect {targetValue} glowing items from the map!", targetValue);
             case GoalType.PaintTiles:
                 return new ActiveGoal(selected, $"Paint {targetValue} tiles!", targetValue);
-            case GoalType.StepOnSpecialTiles:
-                return new ActiveGoal(selected, $"Activate {targetValue} special marked tiles!", targetValue);
             default:
                 return new ActiveGoal(GoalType.CatchOpponent, "Catch your opponent!");
         }
     }
 
-    public int ProcessStepEvaluations(int actingPlayerIndex, Vector2Int currentTile, int currentTileID, Vector2Int opponentTile)
+    public int ProcessStepEvaluations(int actingPlayerIndex, Vector2Int currentTile, Vector2Int opponentTile)
     {
         ActiveGoal activeGoal = (actingPlayerIndex == 0) ? p1Goal_ : p2Goal_;
 
@@ -112,19 +102,6 @@ public class GoalManager : MonoBehaviour
         {
             case GoalType.CatchOpponent:
                 if (currentTile == opponentTile) return actingPlayerIndex + 1;
-                break;
-
-            case GoalType.StepOnSpecialTiles:
-                HashSet<int> mySpecialSet = (actingPlayerIndex == 0) ? steppedSpecialTilesP1_ : steppedSpecialTilesP2_;
-                if (specialTileIDs_.Contains(currentTileID) && !mySpecialSet.Contains(currentTileID))
-                {
-                    mySpecialSet.Add(currentTileID);
-                    activeGoal.CurrentCount = mySpecialSet.Count;
-                    if (activeGoal.CurrentCount >= activeGoal.TargetCount) return actingPlayerIndex + 1;
-                }
-                break;
-
-            case GoalType.PickUpObjects:
                 break;
         }
 
@@ -183,25 +160,6 @@ public class GoalManager : MonoBehaviour
         return TryCompletePaintGoal(actingPlayerIndex);
     }
 
-    public int ReportPickupCollected(int actingPlayerIndex, int tileID)
-    {
-        ActiveGoal activeGoal = GetGoal(actingPlayerIndex);
-
-        if (activeGoal == null || activeGoal.Type != GoalType.PickUpObjects)
-        {
-            return 0;
-        }
-
-        activeGoal.CurrentCount++;
-
-        if (activeGoal.CurrentCount >= activeGoal.TargetCount)
-        {
-            return actingPlayerIndex + 1;
-        }
-
-        return 0;
-    }
-
     private HashSet<int> GetPaintedTiles(int playerIndex)
     {
         return playerIndex == 0
@@ -233,7 +191,4 @@ public class GoalManager : MonoBehaviour
 
         return 0;
     }
-
-    public bool IsSpecialTile(int id) => specialTileIDs_.Contains(id);
-    public bool IsItemTile(int id) => spawnedItemTileIDs_.Contains(id);
 }

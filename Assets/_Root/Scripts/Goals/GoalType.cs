@@ -2,7 +2,5 @@
 public enum GoalType
 {
     CatchOpponent,
-    PickUpObjects,
-    PaintTiles,
-    StepOnSpecialTiles
+    PaintTiles
 }

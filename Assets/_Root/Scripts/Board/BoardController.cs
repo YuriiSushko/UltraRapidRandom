@@ -161,6 +161,27 @@ public class BoardController : MonoBehaviour
             : null;
     }
 
+    public void ResetTileMaterials()
+    {
+        if (grid_ == null)
+        {
+            return;
+        }
+
+        for (int y = 0; y < grid_.Rows; y++)
+        {
+            for (int x = 0; x < grid_.Columns; x++)
+            {
+                Tile tile = grid_.Tiles[x, y];
+
+                if (tile != null)
+                {
+                    tile.ResetMaterial();
+                }
+            }
+        }
+    }
+
     [ContextMenu("Clear Board")]
     public void ClearBoard()
     {

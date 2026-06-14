@@ -6,7 +6,6 @@ public class PickupController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameObject pickupPrefab;
-    [SerializeField] private GameObject collectableOnlyPrefab;
     [SerializeField] private GameObject movementRulePrefab;
     [SerializeField] private GameObject passiveAbilityPrefab;
     [SerializeField] private GameObject activeAbilityPrefab;
@@ -28,16 +27,11 @@ public class PickupController : MonoBehaviour
         board_ = board;
     }
 
-    public void StartRound(PlayerController[] players, bool needsCollectablePickup)
+    public void StartRound(PlayerController[] players)
     {
         ClearPickups();
         rulePickupRespawnTimers_.Clear();
         SpawnRulePickups(players);
-
-        if (needsCollectablePickup)
-        {
-            SpawnCollectablePickup(players);
-        }
     }
 
     public void Tick(float deltaTime, PlayerController[] players)
@@ -103,32 +97,12 @@ public class PickupController : MonoBehaviour
         return null;
     }
 
-    public void EnsureCollectablePickup(PlayerController[] players)
-    {
-        for (int i = 0; i < activePickups_.Count; i++)
-        {
-            PickupObject pickup = activePickups_[i];
-
-            if (pickup != null && pickup.IsCollectableOnly)
-            {
-                return;
-            }
-        }
-
-        SpawnCollectablePickup(players);
-    }
-
     private void SpawnRulePickups(PlayerController[] players)
     {
         for (int i = 0; i < maxRulePickupCount; i++)
         {
             SpawnSingleRulePickup(players);
         }
-    }
-
-    private void SpawnCollectablePickup(PlayerController[] players)
-    {
-        SpawnPickup(players, PickupKind.CollectableOnly);
     }
 
     private void SpawnSingleRulePickup(PlayerController[] players)
@@ -187,11 +161,6 @@ public class PickupController : MonoBehaviour
 
     private GameObject GetPrefabForKind(PickupKind kind)
     {
-        if (kind == PickupKind.CollectableOnly && collectableOnlyPrefab != null)
-        {
-            return collectableOnlyPrefab;
-        }
-
         if (kind == PickupKind.MovementRule && movementRulePrefab != null)
         {
             return movementRulePrefab;
@@ -237,7 +206,6 @@ public class PickupController : MonoBehaviour
                 firstNonDefaultRule,
                 movementRuleCount
             );
-            pickup.movementTileRule = MovementTileRule.AnyTile;
         }
         else if (pickup.kind == PickupKind.PassiveAbility)
         {
@@ -259,7 +227,7 @@ public class PickupController : MonoBehaviour
 
     private void ScheduleRespawnIfNeeded(PickupObject pickup)
     {
-        if (pickup == null || pickup.IsCollectableOnly)
+        if (pickup == null)
         {
             return;
         }
@@ -287,10 +255,7 @@ public class PickupController : MonoBehaviour
                 continue;
             }
 
-            if (!pickup.IsCollectableOnly)
-            {
-                count++;
-            }
+            count++;
         }
 
         return count;
@@ -305,11 +270,7 @@ public class PickupController : MonoBehaviour
             return;
         }
 
-        if (pickup.kind == PickupKind.CollectableOnly)
-        {
-            pickupRenderer.material.color = Color.yellow;
-        }
-        else if (pickup.kind == PickupKind.MovementRule)
+        if (pickup.kind == PickupKind.MovementRule)
         {
             pickupRenderer.material.color = Color.cyan;
         }

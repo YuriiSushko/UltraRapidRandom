@@ -3,19 +3,17 @@ using UnityEngine;
 public class PickupObject : MonoBehaviour
 {
     [Header("Pickup")]
-    public PickupKind kind = PickupKind.CollectableOnly;
+    public PickupKind kind = PickupKind.MovementRule;
     public bool consumeOnPickup = true;
 
     [Header("Movement Rule")]
     public MovementDirectionRule movementDirectionRule = MovementDirectionRule.CanMoveDiagonally;
-    public MovementTileRule movementTileRule = MovementTileRule.AnyTile;
 
     [Header("Abilities")]
     public PassivePlayerAbility passiveAbility = PassivePlayerAbility.None;
     public ActivePlayerAbility activeAbility = ActivePlayerAbility.None;
 
     public int TileID { get; private set; } = -1;
-    public bool IsCollectableOnly => kind == PickupKind.CollectableOnly;
 
     public void Initialize(int tileID)
     {
@@ -34,7 +32,6 @@ public class PickupObject : MonoBehaviour
         if (kind == PickupKind.MovementRule && player.MovementRuleResolver != null)
         {
             player.MovementRuleResolver.directionRule = movementDirectionRule;
-            player.MovementRuleResolver.tileRule = movementTileRule;
         }
         else if (kind == PickupKind.PassiveAbility && player.PlayerActionResolver != null)
         {

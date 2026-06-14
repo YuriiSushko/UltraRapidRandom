@@ -62,10 +62,14 @@ public class Game : MonoBehaviour
         string player1GoalDescription;
         string player2GoalDescription;
 
+        if (boardController != null && boardController.HasGenerated)
+        {
+            boardController.ResetTileMaterials();
+        }
+
         if (goalManager_ != null && boardController != null && boardController.HasGenerated)
         {
             goalManager_.RollNewGoals(out player1GoalDescription, out player2GoalDescription);
-            goalManager_.InitializeMapObjectives(boardController);
 
             player1Goal_ = goalManager_.GetGoal(0);
             player2Goal_ = goalManager_.GetGoal(1);
@@ -96,14 +100,18 @@ public class Game : MonoBehaviour
     {
         bool playersAreTouching = (players != null && players.Length >= 2 && players[0].CurrentTile == players[1].CurrentTile);
 
-        p1Goal = GenerateRandomGoal();
+        // If either previous goal was CatchOpponent, disallow CatchOpponent for both new goals.
+        bool previousHadCatch = (player1Goal_ != null && player1Goal_.Type == GoalType.CatchOpponent)
+                              || (player2Goal_ != null && player2Goal_.Type == GoalType.CatchOpponent);
+
+        p1Goal = GenerateRandomGoal(allowCatch: !previousHadCatch);
 
         while (playersAreTouching && p1Goal.Type == GoalType.CatchOpponent)
         {
-            p1Goal = GenerateRandomGoal();
+            p1Goal = GenerateRandomGoal(allowCatch: !previousHadCatch);
         }
 
-        p2Goal = GenerateRandomGoal();
+        p2Goal = GenerateRandomGoal(allowCatch: !previousHadCatch);
 
         while (true)
         {
@@ -119,30 +127,35 @@ public class Game : MonoBehaviour
                 standardFail = true;
             }
 
+            // If previous had catch, also fail if p2 is catch (already prevented by allowCatch but keep check defensive)
+            if (previousHadCatch && p2Goal.Type == GoalType.CatchOpponent)
+            {
+                standardFail = true;
+            }
+
             if (!standardFail)
             {
                 break;
             }
 
-            p2Goal = GenerateRandomGoal();
+            p2Goal = GenerateRandomGoal(allowCatch: !previousHadCatch);
         }
     }
 
-    private ActiveGoal GenerateRandomGoal()
+    private ActiveGoal GenerateRandomGoal(bool allowCatch = true)
     {
-        GoalType selected = (GoalType)Random.Range(0, 4);
+        GoalType selected = allowCatch
+            ? (GoalType)Random.Range(0, 2)
+            : GoalType.PaintTiles;
+
         int target = Random.Range(3, 7);
 
         switch (selected)
         {
             case GoalType.CatchOpponent:
                 return new ActiveGoal(selected, "Catch your opponent!");
-            case GoalType.PickUpObjects:
-                return new ActiveGoal(selected, $"Pick up all {target}!", target);
             case GoalType.PaintTiles:
                 return new ActiveGoal(selected, $"Paint {target} tiles!", target);
-            case GoalType.StepOnSpecialTiles:
-                return new ActiveGoal(selected, $"Step on all {target}!", target);
             default:
                 return new ActiveGoal(GoalType.CatchOpponent, "Catch your opponent!");
         }
@@ -354,17 +367,7 @@ public class Game : MonoBehaviour
         }
 
         pickupController_.Initialize(boardController);
-        pickupController_.StartRound(players, HasCollectableGoal());
-    }
-
-    private bool HasCollectableGoal()
-    {
-        return IsCollectableGoal(player1Goal_) || IsCollectableGoal(player2Goal_);
-    }
-
-    private bool IsCollectableGoal(ActiveGoal goal)
-    {
-        return goal != null && goal.Type == GoalType.PickUpObjects;
+        pickupController_.StartRound(players);
     }
 
     private void ConfigurePlayerForGoal(PlayerController player, ActiveGoal goal)
@@ -390,7 +393,6 @@ public class Game : MonoBehaviour
         if (player.MovementRuleResolver != null)
         {
             player.MovementRuleResolver.directionRule = MovementDirectionRule.CannotMoveDiagonally;
-            player.MovementRuleResolver.tileRule = MovementTileRule.AnyTile;
         }
 
         if (player.PlayerActionResolver != null)
@@ -413,7 +415,6 @@ public class Game : MonoBehaviour
             firstNonDefaultRule,
             movementRuleCount
         );
-        player.MovementRuleResolver.tileRule = MovementTileRule.AnyTile;
     }
 
     private void ResolveReferences()

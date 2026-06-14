@@ -211,17 +211,6 @@ public class GameState
             return;
         }
 
-        if (pickup.IsCollectableOnly && goalManager_ != null)
-        {
-            int winner = goalManager_.ReportPickupCollected(playerIndex, tileID);
-            if (TryRequestRoundCompletion(winner))
-            {
-                return;
-            }
-
-            pickupController_.EnsureCollectablePickup(players_);
-        }
-
         RefreshPlayerRulesUI(playerIndex);
     }
 
@@ -489,14 +478,12 @@ public class GameState
         int resultP1 = goalManager_.ProcessStepEvaluations(
             0,
             players_[0].CurrentTile,
-            board_.GetTileID(players_[0].CurrentTile),
             players_[1].CurrentTile
         );
 
         int resultP2 = goalManager_.ProcessStepEvaluations(
             1,
             players_[1].CurrentTile,
-            board_.GetTileID(players_[1].CurrentTile),
             players_[0].CurrentTile
         );
 
