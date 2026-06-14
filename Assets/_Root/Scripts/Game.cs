@@ -50,33 +50,55 @@ public class Game : MonoBehaviour
     }
 
     public void StartNewRound()
+{
+    DetermineSafeAsymmetricGoals(out player1Goal_, out player2Goal_);
+
+    player1Goal_.CurrentCount = 0;
+    player2Goal_.CurrentCount = 0;
+
+    if (uiManager_ != null)
     {
-        player1Goal_ = GenerateRandomGoal();
-        player2Goal_ = GenerateRandomGoal();
-
-       
-        bool playersAreTouching = (players != null && players.Length >= 2 && players[0].CurrentTile == players[1].CurrentTile);
-    
-        if (playersAreTouching)
-        {
-            while (player1Goal_.Type == GoalType.CatchOpponent)
-            {
-                player1Goal_ = GenerateRandomGoal();
-            }
-
-            while (player2Goal_.Type == GoalType.CatchOpponent)
-            {
-                player2Goal_ = GenerateRandomGoal();
-            }
-        }
-
-        if (uiManager_ != null)
-        {
-            uiManager_.UpdateRoundUI(currentRound_);
-            uiManager_.UpdatePlayer1UI(player1Rule_, player1Goal_.Description);
-            uiManager_.UpdatePlayer2UI(player2Rule_, player2Goal_.Description);
-        }
+        uiManager_.UpdateRoundUI(currentRound_);
+        uiManager_.UpdatePlayer1UI(player1Rule_, player1Goal_.Description);
+        uiManager_.UpdatePlayer2UI(player2Rule_, player2Goal_.Description);
     }
+}
+
+private void DetermineSafeAsymmetricGoals(out ActiveGoal p1Goal, out ActiveGoal p2Goal)
+{
+    bool playersAreTouching = (players != null && players.Length >= 2 && players[0].CurrentTile == players[1].CurrentTile);
+
+    p1Goal = GenerateRandomGoal();
+
+    while (playersAreTouching && p1Goal.Type == GoalType.CatchOpponent)
+    {
+        p1Goal = GenerateRandomGoal();
+    }
+
+    p2Goal = GenerateRandomGoal();
+
+    while (true)
+    {
+        bool standardFail = false;
+
+        if (p1Goal.Type == GoalType.CatchOpponent && p2Goal.Type == GoalType.CatchOpponent)
+        {
+            standardFail = true;
+        }
+
+        if (playersAreTouching && p2Goal.Type == GoalType.CatchOpponent)
+        {
+            standardFail = true;
+        }
+
+        if (!standardFail)
+        {
+            break; 
+        }
+
+        p2Goal = GenerateRandomGoal();
+    }
+}
 
     private ActiveGoal GenerateRandomGoal()
     {
