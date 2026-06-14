@@ -511,8 +511,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91ddd101ed59490b9e167ddc7efb4fa7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GoalManager
-  minTargetCount: 3
-  maxTargetCount: 8
+  minTargetCount: 8
+  maxTargetCount: 12
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -599,13 +599,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 20, z: 0}
+  m_LocalRotation: {x: 0.50087374, y: -0, z: -0, w: 0.8655204}
+  m_LocalPosition: {x: 0, y: 12.3, z: -9.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 60.116, y: 0, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2523,7 +2523,7 @@ MonoBehaviour:
   maxRulePickupCount: 4
   rulePickupRespawnSeconds: 10
   minDistanceFromPlayers: 4
-  yOffset: 0.45
+  yOffset: 0
   maxSpawnAttempts: 100
 --- !u!4 &2123010606
 Transform:
