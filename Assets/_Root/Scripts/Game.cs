@@ -5,8 +5,6 @@ public class Game : MonoBehaviour
     [Header("References")]
     public BoardController boardController;
     public PlayerController[] players = new PlayerController[0];
-    public MovementRuleResolver movementRuleResolver;
-    public PlayerActionResolver playerActionResolver;
 
     [SerializeField] private UIManager uiManager_;
 
@@ -18,9 +16,7 @@ public class Game : MonoBehaviour
 
         gameState_ = new GameState(
             boardController,
-            players,
-            movementRuleResolver,
-            playerActionResolver
+            players
         );
     }
 
@@ -30,7 +26,7 @@ public class Game : MonoBehaviour
         {
             uiManager_.UpdatePlayer1UI("P1 rule", "P1 goal");
             uiManager_.UpdatePlayer2UI("P2 rule", "P2 goal");
-            
+
             uiManager_.UpdateRoundUI(1);
             uiManager_.TriggerNewRoundPopup(1); //for testing
         }
@@ -54,17 +50,7 @@ public class Game : MonoBehaviour
 
         if (players == null || players.Length == 0)
         {
-            players = FindObjectsOfType<PlayerController>();
-        }
-
-        if (movementRuleResolver == null)
-        {
-            movementRuleResolver = FindFirstObjectByType<MovementRuleResolver>();
-        }
-
-        if (playerActionResolver == null)
-        {
-            playerActionResolver = FindFirstObjectByType<PlayerActionResolver>();
+            players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
         }
     }
 }

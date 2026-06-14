@@ -477,6 +477,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
+  canMoveDiagonally: 1
+  limitMovementToWalkableTiles: 0
+  walkableTileIDs: 
 --- !u!114 &211189795
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,6 +499,25 @@ MonoBehaviour:
   downKey: 33
   leftKey: 15
   rightKey: 18
+  activeActionKey: 1
+  movementRuleResolver: {fileID: 211189794}
+  playerActionResolver: {fileID: 211189796}
+--- !u!114 &211189796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 211189788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0533f6655c14335baefcf94bedef575, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerActionResolver
+  mutateCurrentTileOnPassiveAction: 0
+  passiveTileMaterial: {fileID: 0}
+  mutateCurrentTileOnActiveAction: 0
+  activeTileMaterial: {fileID: 0}
 --- !u!1 &233895795
 GameObject:
   m_ObjectHideFlags: 0
@@ -653,8 +675,6 @@ MonoBehaviour:
   players:
   - {fileID: 211189795}
   - {fileID: 1903012738}
-  movementRuleResolver: {fileID: 833112077}
-  playerActionResolver: {fileID: 833112076}
   uiManager_: {fileID: 401041263}
 --- !u!1 &330585543
 GameObject:
@@ -2296,6 +2316,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
+  canMoveDiagonally: 1
+  limitMovementToWalkableTiles: 0
+  walkableTileIDs: 
 --- !u!114 &1903012738
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2316,10 +2339,8 @@ MonoBehaviour:
   leftKey: 61
   rightKey: 62
   activeActionKey: 1
-  playerID: 2
-  canMoveDiagonally: 1
-  limitMovementToWalkableTiles: 0
-  walkableTileIDs: 
+  movementRuleResolver: {fileID: 1903012737}
+  playerActionResolver: {fileID: 1903012739}
 --- !u!114 &1903012739
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2350,4 +2371,3 @@ SceneRoots:
   - {fileID: 1756565706}
   - {fileID: 179534907}
   - {fileID: 401041264}
-  - {fileID: 833112078}

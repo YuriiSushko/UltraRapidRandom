@@ -4,8 +4,6 @@ public class GameState
 {
     private readonly BoardController board_;
     private readonly PlayerController[] players_;
-    private readonly MovementRuleResolver movementRuleResolver_;
-    private readonly PlayerActionResolver playerActionResolver_;
     private readonly MovementValidator movementValidator_ = new MovementValidator();
     private readonly BoardMutator boardMutator_ = new BoardMutator();
 
@@ -13,17 +11,13 @@ public class GameState
 
     public GameState(
         BoardController board,
-        PlayerController[] players,
-        MovementRuleResolver movementRuleResolver,
-        PlayerActionResolver playerActionResolver
+        PlayerController[] players
     )
     {
         board_ = board;
         players_ = players != null
             ? players
             : new PlayerController[0];
-        movementRuleResolver_ = movementRuleResolver;
-        playerActionResolver_ = playerActionResolver;
     }
 
     public void AdvanceTick(float deltaTime)
@@ -113,8 +107,8 @@ public class GameState
             return;
         }
 
-        MovementRuleData ruleData = movementRuleResolver_ != null
-            ? movementRuleResolver_.ResolveRules(playerController, direction)
+        MovementRuleData ruleData = playerController.MovementRuleResolver != null
+            ? playerController.MovementRuleResolver.ResolveRules(playerController.CurrentTile, direction)
             : MovementRuleData.Default;
 
         MovementValidationResult result = movementValidator_.Validate(
@@ -143,13 +137,13 @@ public class GameState
             return;
         }
 
-        if (playerActionResolver_ == null)
+        if (playerController.PlayerActionResolver == null)
         {
             return;
         }
 
         int currentTileID = board_.GetTileID(playerController.CurrentTile);
-        BoardMutationData mutationData = playerActionResolver_.ResolveActions(
+        BoardMutationData mutationData = playerController.PlayerActionResolver.ResolveActions(
             actionInput,
             currentTileID
         );
