@@ -82,6 +82,24 @@ public class UIManager : MonoBehaviour
             StartCoroutine(ShowAndHidePopup(playerNumber));
         }
     }
+    
+    public void TriggerMatchEndPopup(int ultimateWinner)
+    {
+        if (popupPanel != null && popupText != null)
+        {
+            StopAllCoroutines();
+            popupPanel.SetActive(true);
+        
+            if (ultimateWinner == 0)
+            {
+                popupText.text = "MATCH OVER!\nIT'S A DRAW!";
+            }
+            else
+            {
+                popupText.text = $"MATCH OVER!\nPLAYER {ultimateWinner} IS THE ULTIMATE WINNER!";
+            }
+        }
+    }
 
     private IEnumerator ShowAndHidePopup(int playerNumber)
     {

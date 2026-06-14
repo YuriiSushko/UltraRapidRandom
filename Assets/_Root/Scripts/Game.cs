@@ -18,6 +18,11 @@ public class Game : MonoBehaviour
     private List<string> player2Rules_ = new List<string>();
 
     private GameState gameState_;
+    
+    private int player1Wins_ = 0;
+    private int player2Wins_ = 0;
+    private bool isMatchOver_ = false;
+    private bool isRoundTransitioning_ = false;
 
     private void Awake()
     {
@@ -39,6 +44,8 @@ public class Game : MonoBehaviour
 
     private void Update()
     {
+        if (isMatchOver_ || isRoundTransitioning_) return;
+        
         if (gameState_ != null)
         {
             gameState_.AdvanceTick(Time.deltaTime);
@@ -236,17 +243,52 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void TriggerRoundEnd(int winningPlayerNumber)
+    public void TriggerRoundEnd(int winningPlayerNumber)
     {
-        currentRound_++;
+        if (isMatchOver_ || isRoundTransitioning_) return;
+    
+        isRoundTransitioning_ = true;
 
+        if (winningPlayerNumber == 1) player1Wins_++;
+        if (winningPlayerNumber == 2) player2Wins_++;
+
+        if (currentRound_ >= 3)
+        {
+            DeclareMatchWinner();
+            return;
+        }
+
+        currentRound_++;
+    
         if (uiManager_ != null)
         {
             uiManager_.TriggerNewRoundPopup(winningPlayerNumber);
         }
-
-        StartNewRound();
+    
+        Invoke(nameof(ResumeNextRoundSimulation), 3.0f); 
     }
+    
+    private void ResumeNextRoundSimulation()
+    {
+        StartNewRound();
+        isRoundTransitioning_ = false;
+    }
+    private void DeclareMatchWinner()
+    {
+        isMatchOver_ = true;
+    
+        int ultimateWinner = 0;
+        if (player1Wins_ > player2Wins_) ultimateWinner = 1;
+        else if (player2Wins_ > player1Wins_) ultimateWinner = 2;
+
+        if (uiManager_ != null)
+        {
+            uiManager_.TriggerMatchEndPopup(ultimateWinner);
+        }
+    
+        Debug.Log($"Match complete. Player 1 rounds: {player1Wins_} | Player 2 rounds: {player2Wins_}");
+    }
+    
 
     public void HandleGoalManagerRoundEnd(int winningPlayerNumber)
     {
