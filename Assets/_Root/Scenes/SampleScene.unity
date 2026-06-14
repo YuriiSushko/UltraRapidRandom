@@ -494,8 +494,8 @@ MonoBehaviour:
   - {fileID: 389588425}
   - {fileID: 1464599410}
   uiManager_: {fileID: 401041263}
-  goalManager_: {fileID: 0}
-  pickupController_: {fileID: 1399890342}
+  goalManager_: {fileID: 2010915223}
+  pickupController_: {fileID: 2123010605}
   roundCompleted:
     m_PersistentCalls:
       m_Calls: []
@@ -743,9 +743,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
   directionRule: 0
-  tileRule: 0
-  affectedTileIDs: 
-  affectedTileMaterials: []
 --- !u!114 &389588424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -774,7 +771,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 775fa1ebe3a15e84197a2ca5b4b017d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  startTile: {x: 0, y: 0}
+  startTile: {x: 20, y: 20}
   diagonalInputBuffer: 0.075
   moveCooldown: 0.5
   upKey: 63
@@ -1851,7 +1848,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 775fa1ebe3a15e84197a2ca5b4b017d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  startTile: {x: 20, y: 20}
+  startTile: {x: 0, y: 0}
   diagonalInputBuffer: 0.075
   moveCooldown: 0.5
   upKey: 37
@@ -1974,9 +1971,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
   directionRule: 0
-  tileRule: 0
-  affectedTileIDs: 
-  affectedTileMaterials: []
 --- !u!1 &1506377536
 GameObject:
   m_ObjectHideFlags: 0
@@ -2447,6 +2441,105 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1464599415}
   m_SourcePrefab: {fileID: 100100000, guid: 7c4ca1ddc02c0da40b66941de32ff15f, type: 3}
+--- !u!1 &2010915222
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2010915224}
+  - component: {fileID: 2010915223}
+  m_Layer: 0
+  m_Name: GoalManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2010915223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2010915222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91ddd101ed59490b9e167ddc7efb4fa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoalManager
+  minTargetCount: 8
+  maxTargetCount: 12
+--- !u!4 &2010915224
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2010915222}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 10.25681, y: 0.75187, z: 10.55693}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2123010604
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2123010606}
+  - component: {fileID: 2123010605}
+  m_Layer: 0
+  m_Name: PickupController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2123010605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123010604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d79d3de63d13bf343b0a4cec045ad3b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupController
+  pickupPrefab: {fileID: 919132149155446097, guid: 953116050d2d91f4fa05f500d6567d0d, type: 3}
+  movementRulePrefab: {fileID: 919132149155446097, guid: 3000bc58558d9344eb63cce054b3af10, type: 3}
+  passiveAbilityPrefab: {fileID: 919132149155446097, guid: 3000bc58558d9344eb63cce054b3af10, type: 3}
+  activeAbilityPrefab: {fileID: 919132149155446097, guid: 3000bc58558d9344eb63cce054b3af10, type: 3}
+  maxRulePickupCount: 4
+  rulePickupRespawnSeconds: 10
+  minDistanceFromPlayers: 4
+  yOffset: 0.45
+  maxSpawnAttempts: 100
+--- !u!4 &2123010606
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123010604}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 10.25681, y: 0.75187, z: 10.55693}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -2461,3 +2554,5 @@ SceneRoots:
   - {fileID: 401041264}
   - {fileID: 1887923603}
   - {fileID: 367184277}
+  - {fileID: 2123010606}
+  - {fileID: 2010915224}
