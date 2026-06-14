@@ -33,6 +33,9 @@ public class PlayerController : MonoBehaviour
 
     private Vector2Int currentTile_;
     private float movementCooldownRemaining_;
+    private float hiddenRemaining_;
+    private bool isHidden_;
+    private Renderer[] renderers_;
 
     private bool hasPendingKey_;
     private Key pendingKey_;
@@ -53,7 +56,7 @@ public class PlayerController : MonoBehaviour
         HasInitialized = true;
     }
 
-    private void ResolveReferences()
+    public void ResolveReferences()
     {
         if (movementRuleResolver == null)
         {
@@ -64,10 +67,43 @@ public class PlayerController : MonoBehaviour
         {
             playerActionResolver = GetComponent<PlayerActionResolver>();
         }
+
+        renderers_ = GetComponentsInChildren<Renderer>();
+    }
+
+    public string GetRuleSummary()
+    {
+        ResolveReferences();
+
+        string movementRules = movementRuleResolver != null
+            ? movementRuleResolver.GetRuleSummary()
+            : string.Empty;
+        string actionRules = playerActionResolver != null
+            ? playerActionResolver.GetAbilitySummary()
+            : string.Empty;
+
+        if (movementRules.Length > 0 && actionRules.Length > 0)
+        {
+            return $"{movementRules}, {actionRules}";
+        }
+
+        if (movementRules.Length > 0)
+        {
+            return movementRules;
+        }
+
+        if (actionRules.Length > 0)
+        {
+            return actionRules;
+        }
+
+        return "None";
     }
 
     public void TickTimers(float deltaTime)
     {
+        TickHidden(deltaTime);
+
         if (movementCooldownRemaining_ <= 0f)
         {
             movementCooldownRemaining_ = 0f;
@@ -140,9 +176,66 @@ public class PlayerController : MonoBehaviour
         currentTile_ = result.TargetTile;
     }
 
+    public void SetCurrentTile(Vector2Int tile)
+    {
+        currentTile_ = tile;
+    }
+
+    public void Hide(float duration)
+    {
+        if (duration <= 0f)
+        {
+            return;
+        }
+
+        hiddenRemaining_ = Mathf.Max(hiddenRemaining_, duration);
+        SetHidden(true);
+    }
+
     public void ResetMovementCooldown()
     {
         movementCooldownRemaining_ = moveCooldown;
+    }
+
+    private void TickHidden(float deltaTime)
+    {
+        if (hiddenRemaining_ <= 0f)
+        {
+            return;
+        }
+
+        hiddenRemaining_ = Mathf.Max(
+            0f,
+            hiddenRemaining_ - deltaTime
+        );
+
+        if (hiddenRemaining_ <= 0f)
+        {
+            SetHidden(false);
+        }
+    }
+
+    private void SetHidden(bool hidden)
+    {
+        if (isHidden_ == hidden)
+        {
+            return;
+        }
+
+        isHidden_ = hidden;
+
+        if (renderers_ == null)
+        {
+            renderers_ = GetComponentsInChildren<Renderer>();
+        }
+
+        for (int i = 0; i < renderers_.Length; i++)
+        {
+            if (renderers_[i] != null)
+            {
+                renderers_[i].enabled = !hidden;
+            }
+        }
     }
 
     private Key GetFirstPressedKey()

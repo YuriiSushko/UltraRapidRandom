@@ -477,9 +477,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
-  canMoveDiagonally: 1
-  limitMovementToWalkableTiles: 0
-  walkableTileIDs: 
+  directionRule: 2
+  tileRule: 0
+  affectedTileIDs: 
+  affectedTileMaterials: []
 --- !u!114 &211189795
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -514,10 +515,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0533f6655c14335baefcf94bedef575, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerActionResolver
-  mutateCurrentTileOnPassiveAction: 0
-  passiveTileMaterial: {fileID: 0}
-  mutateCurrentTileOnActiveAction: 0
-  activeTileMaterial: {fileID: 0}
+  passiveAbility: 0
+  passivePaintMaterial: {fileID: 0}
+  activeAbility: 2
+  activePaintMaterial: {fileID: 0}
+  hideOpponentSeconds: 2
 --- !u!1 &233895795
 GameObject:
   m_ObjectHideFlags: 0
@@ -2316,9 +2318,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
-  canMoveDiagonally: 1
-  limitMovementToWalkableTiles: 0
-  walkableTileIDs: 
+  directionRule: 1
+  tileRule: 0
+  affectedTileIDs: 
+  affectedTileMaterials: []
 --- !u!114 &1903012738
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2338,7 +2341,7 @@ MonoBehaviour:
   downKey: 64
   leftKey: 61
   rightKey: 62
-  activeActionKey: 1
+  activeActionKey: 84
   movementRuleResolver: {fileID: 1903012737}
   playerActionResolver: {fileID: 1903012739}
 --- !u!114 &1903012739
@@ -2353,10 +2356,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0533f6655c14335baefcf94bedef575, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerActionResolver
-  mutateCurrentTileOnPassiveAction: 0
-  passiveTileMaterial: {fileID: 0}
-  mutateCurrentTileOnActiveAction: 0
-  activeTileMaterial: {fileID: 0}
+  passiveAbility: 1
+  passivePaintMaterial: {fileID: -876546973899608171, guid: 2476a2d151e824143af40dce1fc93a12, type: 3}
+  activeAbility: 2
+  activePaintMaterial: {fileID: 0}
+  hideOpponentSeconds: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

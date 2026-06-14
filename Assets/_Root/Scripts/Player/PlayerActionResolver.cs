@@ -1,36 +1,144 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum PassivePlayerAbility
+{
+    None,
+    PaintCurrentTile
+}
+
+public enum ActivePlayerAbility
+{
+    None = 0,
+    HideFirstOpponent = 2,
+    SwapWithFirstOpponent = 3
+}
+
 public class PlayerActionResolver : MonoBehaviour
 {
-    [Header("Mock Passive Action")]
-    public bool mutateCurrentTileOnPassiveAction = false;
-    public Material passiveTileMaterial;
+    [Header("Passive Ability")]
+    public PassivePlayerAbility passiveAbility = PassivePlayerAbility.None;
+    public Material passivePaintMaterial;
 
-    [Header("Mock Active Action")]
-    public bool mutateCurrentTileOnActiveAction = false;
-    public Material activeTileMaterial;
+    [Header("Active Ability")]
+    public ActivePlayerAbility activeAbility = ActivePlayerAbility.None;
+    public float hideOpponentSeconds = 2f;
 
-    public BoardMutationData ResolveActions(PlayerActionInput input, int currentTileID)
+    public PlayerActionResult ResolveActions(
+        PlayerActionInput input,
+        PlayerActionContext context
+    )
     {
-        List<BoardMutation> mutations = new List<BoardMutation>();
-
-        if (input.HasPassiveAction && mutateCurrentTileOnPassiveAction)
+        if (context == null)
         {
-            AddTileMaterialMutation(mutations, currentTileID, passiveTileMaterial);
+            return PlayerActionResult.Empty;
         }
 
-        if (input.HasActiveAction && mutateCurrentTileOnActiveAction)
+        List<BoardMutation> boardMutations = new List<BoardMutation>();
+        List<PlayerEffect> playerEffects = new List<PlayerEffect>();
+
+        if (input.HasPassiveAction)
         {
-            AddTileMaterialMutation(mutations, currentTileID, activeTileMaterial);
+            ResolvePassiveAbility(context, boardMutations);
         }
 
-        if (mutations.Count == 0)
+        if (input.HasActiveAction)
         {
-            return BoardMutationData.Empty;
+            ResolveActiveAbility(context, boardMutations, playerEffects);
         }
 
-        return new BoardMutationData(mutations);
+        return new PlayerActionResult(
+            new BoardMutationData(boardMutations),
+            playerEffects
+        );
+    }
+
+    private void ResolvePassiveAbility(
+        PlayerActionContext context,
+        List<BoardMutation> boardMutations
+    )
+    {
+        if (passiveAbility == PassivePlayerAbility.PaintCurrentTile)
+        {
+            AddTileMaterialMutation(
+                boardMutations,
+                context.CurrentTileID,
+                passivePaintMaterial
+            );
+        }
+    }
+
+    private void ResolveActiveAbility(
+        PlayerActionContext context,
+        List<BoardMutation> boardMutations,
+        List<PlayerEffect> playerEffects
+    )
+    {
+        PlayerController opponent = context.GetFirstOpponent();
+
+        if (opponent == null)
+        {
+            return;
+        }
+
+        if (activeAbility == ActivePlayerAbility.HideFirstOpponent)
+        {
+            playerEffects.Add(PlayerEffect.Hide(context.Actor, opponent, hideOpponentSeconds));
+        }
+        else if (activeAbility == ActivePlayerAbility.SwapWithFirstOpponent)
+        {
+            playerEffects.Add(PlayerEffect.Swap(context.Actor, opponent));
+        }
+    }
+
+    public string GetAbilitySummary()
+    {
+        string passiveText = GetPassiveAbilityText();
+        string activeText = GetActiveAbilityText();
+
+        if (passiveText.Length > 0 && activeText.Length > 0)
+        {
+            return $"{passiveText}, {activeText}";
+        }
+
+        if (passiveText.Length > 0)
+        {
+            return passiveText;
+        }
+
+        return activeText;
+    }
+
+    private string GetPassiveAbilityText()
+    {
+        if (passiveAbility == PassivePlayerAbility.PaintCurrentTile)
+        {
+            return $"Paint{GetMaterialSuffix(passivePaintMaterial)}";
+        }
+
+        return string.Empty;
+    }
+
+    private string GetActiveAbilityText()
+    {
+        if (activeAbility == ActivePlayerAbility.HideFirstOpponent)
+        {
+            return $"Hide {hideOpponentSeconds:0.#}s";
+        }
+
+        if (activeAbility == ActivePlayerAbility.SwapWithFirstOpponent)
+        {
+            return "Swap";
+        }
+
+        return string.Empty;
+    }
+
+    private string GetMaterialSuffix(Material material)
+    {
+        return material != null
+            ? $" ({material.name})"
+            : string.Empty;
     }
 
     private void AddTileMaterialMutation(

@@ -198,12 +198,82 @@ public class GameState
             return;
         }
 
-        int currentTileID = board_.GetTileID(playerController.CurrentTile);
-        BoardMutationData mutationData = playerController.PlayerActionResolver.ResolveActions(
+        PlayerActionContext context = new PlayerActionContext(
+            board_,
+            playerController,
+            players_,
+            board_.GetTileID(playerController.CurrentTile)
+        );
+        PlayerActionResult actionResult = playerController.PlayerActionResolver.ResolveActions(
             actionInput,
-            currentTileID
+            context
         );
 
-        boardMutator_.Apply(board_, mutationData);
+        ApplyActionResult(actionResult);
+    }
+
+    private void ApplyActionResult(PlayerActionResult actionResult)
+    {
+        if (actionResult == null || !actionResult.HasAnyResult)
+        {
+            return;
+        }
+
+        boardMutator_.Apply(board_, actionResult.BoardMutations);
+
+        for (int i = 0; i < actionResult.PlayerEffects.Count; i++)
+        {
+            ApplyPlayerEffect(actionResult.PlayerEffects[i]);
+        }
+    }
+
+    private void ApplyPlayerEffect(PlayerEffect playerEffect)
+    {
+        if (playerEffect.Type == PlayerEffectType.Hide)
+        {
+            if (playerEffect.Target != null)
+            {
+                playerEffect.Target.Hide(playerEffect.Duration);
+            }
+
+            return;
+        }
+
+        if (playerEffect.Type == PlayerEffectType.SwapTiles)
+        {
+            SwapPlayers(playerEffect.Source, playerEffect.Target);
+        }
+    }
+
+    private void SwapPlayers(
+        PlayerController firstPlayer,
+        PlayerController secondPlayer
+    )
+    {
+        if (firstPlayer == null || secondPlayer == null)
+        {
+            return;
+        }
+
+        Vector2Int firstTile = firstPlayer.CurrentTile;
+        Vector2Int secondTile = secondPlayer.CurrentTile;
+
+        firstPlayer.SetCurrentTile(secondTile);
+        secondPlayer.SetCurrentTile(firstTile);
+
+        WarpPlayerToCurrentTile(firstPlayer);
+        WarpPlayerToCurrentTile(secondPlayer);
+    }
+
+    private void WarpPlayerToCurrentTile(PlayerController playerController)
+    {
+        PlayerMover playerMover = playerController.GetComponent<PlayerMover>();
+
+        if (playerMover == null)
+        {
+            return;
+        }
+
+        playerMover.WarpTo(board_.GetTileWorldPosition(playerController.CurrentTile));
     }
 }

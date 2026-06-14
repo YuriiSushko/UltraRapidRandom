@@ -147,6 +147,15 @@ public class BoardController : MonoBehaviour
         tile.SetMaterial(material);
     }
 
+    public Material GetTileMaterial(int tileID)
+    {
+        Tile tile = GetBoardTile(tileID);
+
+        return tile != null
+            ? tile.GetMaterial()
+            : null;
+    }
+
     [ContextMenu("Clear Board")]
     public void ClearBoard()
     {

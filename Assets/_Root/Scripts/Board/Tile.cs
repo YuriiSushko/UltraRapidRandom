@@ -39,6 +39,18 @@ public class Tile : MonoBehaviour
             return;
         }
 
-        tileRenderer.material = material;
+        tileRenderer.sharedMaterial = material;
+    }
+
+    public Material GetMaterial()
+    {
+        if (tileRenderer == null)
+        {
+            tileRenderer = GetComponent<Renderer>();
+        }
+
+        return tileRenderer != null
+            ? tileRenderer.sharedMaterial
+            : null;
     }
 }

@@ -24,7 +24,6 @@ public class PlayerMover : MonoBehaviour
         );
     }
 
-    // instantly moves the player to the specified world position, ignoring any movement speed or validation rules
     public void WarpTo(Vector3 worldPosition)
     {
         targetPosition_ = ApplyYOffset(worldPosition);

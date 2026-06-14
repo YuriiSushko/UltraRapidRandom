@@ -14,7 +14,7 @@ public class MovementValidator
             return MovementValidationResult.Invalid();
         }
 
-        if (IsDiagonal(direction) && !ruleData.CanMoveDiagonally)
+        if (!ruleData.CanUseDirection(direction))
         {
             return MovementValidationResult.Invalid();
         }
@@ -28,7 +28,7 @@ public class MovementValidator
 
         int targetTileID = board.GetTileID(targetTile);
 
-        if (!ruleData.CanWalkOnTile(targetTileID))
+        if (!ruleData.CanWalkOnTile(targetTileID, board.GetTileMaterial(targetTileID)))
         {
             return MovementValidationResult.Invalid();
         }
@@ -38,10 +38,5 @@ public class MovementValidator
             targetTileID,
             board.GetTileWorldPosition(targetTile)
         );
-    }
-
-    private bool IsDiagonal(Vector2Int direction)
-    {
-        return direction.x != 0 && direction.y != 0;
     }
 }

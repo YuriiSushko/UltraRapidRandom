@@ -24,8 +24,7 @@ public class Game : MonoBehaviour
     {
         if (uiManager_ != null)
         {
-            uiManager_.UpdatePlayer1UI("P1 rule", "P1 goal");
-            uiManager_.UpdatePlayer2UI("P2 rule", "P2 goal");
+            UpdatePlayersUI();
 
             uiManager_.UpdateRoundUI(1);
             uiManager_.TriggerNewRoundPopup(1); //for testing
@@ -34,6 +33,42 @@ public class Game : MonoBehaviour
         {
             Debug.LogError($"UIManager reference is missing on {gameObject.name}! Drag your UI Canvas or Manager object into the Inspector slot.");
         }
+    }
+
+    private void UpdatePlayersUI()
+    {
+        uiManager_.UpdatePlayer1UI(
+            GetPlayerRuleText(0),
+            GetPlayerGoalText(0)
+        );
+        uiManager_.UpdatePlayer2UI(
+            GetPlayerRuleText(1),
+            GetPlayerGoalText(1)
+        );
+    }
+
+    private string GetPlayerRuleText(int playerIndex)
+    {
+        PlayerController player = GetPlayer(playerIndex);
+
+        return player != null
+            ? player.GetRuleSummary()
+            : "No player assigned";
+    }
+
+    private string GetPlayerGoalText(int playerIndex)
+    {
+        return "No goal assigned";
+    }
+
+    private PlayerController GetPlayer(int playerIndex)
+    {
+        if (players == null || playerIndex < 0 || playerIndex >= players.Length)
+        {
+            return null;
+        }
+
+        return players[playerIndex];
     }
 
     private void Update()
