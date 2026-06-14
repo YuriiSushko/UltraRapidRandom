@@ -22,17 +22,14 @@ public class PlayerController : MonoBehaviour
     [Header("Action Controls")]
     public Key activeActionKey = Key.Space;
 
-    [Header("Player Rules")]
-    public int playerID;
-    public bool canMoveDiagonally;
-
-    [Tooltip("When enabled, movement is valid only if the target tile ID is in walkableTileIDs.")]
-    public bool limitMovementToWalkableTiles;
-
-    public int[] walkableTileIDs = new int[0];
+    [Header("Resolvers")]
+    public MovementRuleResolver movementRuleResolver;
+    public PlayerActionResolver playerActionResolver;
 
     public bool HasInitialized { get; private set; }
     public Vector2Int CurrentTile => currentTile_;
+    public MovementRuleResolver MovementRuleResolver => movementRuleResolver;
+    public PlayerActionResolver PlayerActionResolver => playerActionResolver;
 
     private Vector2Int currentTile_;
     private float movementCooldownRemaining_;
@@ -48,10 +45,25 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        ResolveReferences();
+
         currentTile_ = board.ClampToExistingTile(startTile);
         movementCooldownRemaining_ = 0f;
         hasPendingKey_ = false;
         HasInitialized = true;
+    }
+
+    private void ResolveReferences()
+    {
+        if (movementRuleResolver == null)
+        {
+            movementRuleResolver = GetComponent<MovementRuleResolver>();
+        }
+
+        if (playerActionResolver == null)
+        {
+            playerActionResolver = GetComponent<PlayerActionResolver>();
+        }
     }
 
     public void TickTimers(float deltaTime)

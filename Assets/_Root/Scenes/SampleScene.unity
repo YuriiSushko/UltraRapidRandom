@@ -151,11 +151,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1145909976}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 20, y: 10}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -25}
   m_SizeDelta: {x: 200, y: 50}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &10071093
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -350,6 +350,7 @@ GameObject:
   - component: {fileID: 211189793}
   - component: {fileID: 211189795}
   - component: {fileID: 211189794}
+  - component: {fileID: 211189796}
   m_Layer: 0
   m_Name: player_1
   m_TagString: Untagged
@@ -476,6 +477,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
+  canMoveDiagonally: 1
+  limitMovementToWalkableTiles: 0
+  walkableTileIDs: 
 --- !u!114 &211189795
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,10 +500,24 @@ MonoBehaviour:
   leftKey: 15
   rightKey: 18
   activeActionKey: 1
-  playerID: 0
-  canMoveDiagonally: 0
-  limitMovementToWalkableTiles: 0
-  walkableTileIDs: 
+  movementRuleResolver: {fileID: 211189794}
+  playerActionResolver: {fileID: 211189796}
+--- !u!114 &211189796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 211189788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0533f6655c14335baefcf94bedef575, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerActionResolver
+  mutateCurrentTileOnPassiveAction: 0
+  passiveTileMaterial: {fileID: 0}
+  mutateCurrentTileOnActiveAction: 0
+  activeTileMaterial: {fileID: 0}
 --- !u!1 &233895795
 GameObject:
   m_ObjectHideFlags: 0
@@ -657,8 +675,6 @@ MonoBehaviour:
   players:
   - {fileID: 211189795}
   - {fileID: 1903012738}
-  movementRuleResolver: {fileID: 0}
-  playerActionResolver: {fileID: 0}
   uiManager_: {fileID: 401041263}
 --- !u!1 &330585543
 GameObject:
@@ -1008,11 +1024,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1801725738}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 20, y: 10}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -25}
   m_SizeDelta: {x: 200, y: 50}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &566343482
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1145,11 +1161,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1145909976}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 20, y: -20}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 25}
   m_SizeDelta: {x: 200, y: 50}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &756195531
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1333,7 +1349,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 50, y: -10}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1101828489
@@ -1383,8 +1399,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 36
+  m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1871,11 +1887,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1801725738}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 20, y: -20}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 25}
   m_SizeDelta: {x: 200, y: 50}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1699687771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2300,6 +2316,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
+  canMoveDiagonally: 1
+  limitMovementToWalkableTiles: 0
+  walkableTileIDs: 
 --- !u!114 &1903012738
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2320,10 +2339,8 @@ MonoBehaviour:
   leftKey: 61
   rightKey: 62
   activeActionKey: 1
-  playerID: 2
-  canMoveDiagonally: 1
-  limitMovementToWalkableTiles: 0
-  walkableTileIDs: 
+  movementRuleResolver: {fileID: 1903012737}
+  playerActionResolver: {fileID: 1903012739}
 --- !u!114 &1903012739
 MonoBehaviour:
   m_ObjectHideFlags: 0

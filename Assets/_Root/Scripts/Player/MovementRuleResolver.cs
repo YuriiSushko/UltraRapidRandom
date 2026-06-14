@@ -2,17 +2,20 @@ using UnityEngine;
 
 public class MovementRuleResolver : MonoBehaviour
 {
-    public MovementRuleData ResolveRules(PlayerController player, Vector2Int direction)
-    {
-        if (player == null)
-        {
-            return MovementRuleData.Default;
-        }
+    [Header("Mock Movement Rules")]
+    public bool canMoveDiagonally = false;
 
+    [Tooltip("When enabled, movement is valid only if the target tile ID is in walkableTileIDs.")]
+    public bool limitMovementToWalkableTiles = false;
+
+    public int[] walkableTileIDs = new int[0];
+
+    public MovementRuleData ResolveRules(Vector2Int currentTile, Vector2Int direction)
+    {
         return new MovementRuleData(
-            player.canMoveDiagonally,
-            player.limitMovementToWalkableTiles,
-            player.walkableTileIDs
+            canMoveDiagonally,
+            limitMovementToWalkableTiles,
+            walkableTileIDs
         );
     }
 }
