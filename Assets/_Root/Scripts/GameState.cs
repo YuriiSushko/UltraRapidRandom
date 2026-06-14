@@ -398,8 +398,8 @@ public class GameState
 
             if (ui != null)
             {
-                ui.UpdatePlayer1UI(GetPlayerRuleText(0), newP1Desc);
-                ui.UpdatePlayer2UI(GetPlayerRuleText(1), newP2Desc);
+                ui.UpdatePlayer1UI(GetPlayerRuleList(0), newP1Desc);
+                ui.UpdatePlayer2UI(GetPlayerRuleList(1), newP2Desc);
             }
         }
     }
@@ -413,6 +413,38 @@ public class GameState
 
         return players_[playerIndex].GetRuleSummary();
     }
+
+    private System.Collections.Generic.List<string> GetPlayerRuleList(int playerIndex)
+    {
+        if (playerIndex < 0 || playerIndex >= players_.Length || players_[playerIndex] == null)
+        {
+            return new System.Collections.Generic.List<string>();
+        }
+
+        return SplitRuleSummary(players_[playerIndex].GetRuleSummary());
+    }
+
+    private System.Collections.Generic.List<string> SplitRuleSummary(string summary)
+    {
+        System.Collections.Generic.List<string> rules = new System.Collections.Generic.List<string>();
+
+        if (string.IsNullOrWhiteSpace(summary) || summary == "None")
+        {
+            return rules;
+        }
+
+        string[] parts = summary.Split(',');
+
+        for (int i = 0; i < parts.Length; i++)
+        {
+            string rule = parts[i].Trim();
+
+            if (rule.Length > 0)
+            {
+                rules.Add(rule);
+            }
+        }
+
+        return rules;
+    }
 }
-
-

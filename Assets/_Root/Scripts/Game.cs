@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Game : MonoBehaviour
@@ -8,10 +9,12 @@ public class Game : MonoBehaviour
 
     [SerializeField] private UIManager uiManager_;
 
-    // Rules & Goals State
     private int currentRound_ = 1;
     private ActiveGoal player1Goal_;
     private ActiveGoal player2Goal_;
+
+    private List<string> player1Rules_ = new List<string>();
+    private List<string> player2Rules_ = new List<string>();
 
     private GameState gameState_;
 
@@ -53,8 +56,8 @@ public class Game : MonoBehaviour
         if (uiManager_ != null)
         {
             uiManager_.UpdateRoundUI(currentRound_);
-            uiManager_.UpdatePlayer1UI(GetPlayerRuleText(0), player1Goal_.Description);
-            uiManager_.UpdatePlayer2UI(GetPlayerRuleText(1), player2Goal_.Description);
+            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1Goal_.Description);
+            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2Goal_.Description);
         }
     }
 
@@ -123,6 +126,65 @@ public class Game : MonoBehaviour
             : "No player assigned";
     }
 
+    private List<string> GetPlayerRuleList(int playerIndex)
+    {
+        PlayerController player = GetPlayer(playerIndex);
+        List<string> rules = player != null
+            ? SplitRuleSummary(player.GetRuleSummary())
+            : new List<string>();
+
+        List<string> extraRules = GetStoredPlayerRules(playerIndex);
+
+        for (int i = 0; i < extraRules.Count; i++)
+        {
+            if (!rules.Contains(extraRules[i]))
+            {
+                rules.Add(extraRules[i]);
+            }
+        }
+
+        return rules;
+    }
+
+    private List<string> GetStoredPlayerRules(int playerIndex)
+    {
+        if (playerIndex == 0)
+        {
+            return player1Rules_;
+        }
+
+        if (playerIndex == 1)
+        {
+            return player2Rules_;
+        }
+
+        return new List<string>();
+    }
+
+    private List<string> SplitRuleSummary(string summary)
+    {
+        List<string> rules = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(summary) || summary == "None")
+        {
+            return rules;
+        }
+
+        string[] parts = summary.Split(',');
+
+        for (int i = 0; i < parts.Length; i++)
+        {
+            string rule = parts[i].Trim();
+
+            if (rule.Length > 0)
+            {
+                rules.Add(rule);
+            }
+        }
+
+        return rules;
+    }
+
     private PlayerController GetPlayer(int playerIndex)
     {
         if (players == null || playerIndex < 0 || playerIndex >= players.Length)
@@ -148,12 +210,12 @@ public class Game : MonoBehaviour
             return;
         }
 
+        // Counter Accumulation Checks (Fixed duplication bug)
         if (player1Goal_.CurrentCount >= player1Goal_.TargetCount && player1Goal_.TargetCount > 0)
-            if (player1Goal_.CurrentCount >= player1Goal_.TargetCount && player1Goal_.TargetCount > 0)
-            {
-                TriggerRoundEnd(1);
-                return;
-            }
+        {
+            TriggerRoundEnd(1);
+            return;
+        }
         if (player2Goal_.CurrentCount >= player2Goal_.TargetCount && player2Goal_.TargetCount > 0)
         {
             TriggerRoundEnd(2);
@@ -177,6 +239,26 @@ public class Game : MonoBehaviour
     {
         if (playerIndex == 0) player1Goal_.CurrentCount += amount;
         if (playerIndex == 1) player2Goal_.CurrentCount += amount;
+    }
+
+    public void SetPlayerRules(int playerIndex, List<string> newRulesList)
+    {
+        List<string> rules = newRulesList != null
+            ? new List<string>(newRulesList)
+            : new List<string>();
+
+        if (playerIndex == 0)
+        {
+            player1Rules_ = rules;
+            if (uiManager_ != null && player1Goal_ != null)
+                uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1Goal_.Description);
+        }
+        else if (playerIndex == 1)
+        {
+            player2Rules_ = rules;
+            if (uiManager_ != null && player2Goal_ != null)
+                uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2Goal_.Description);
+        }
     }
 
     private void ResolveReferences()
@@ -214,5 +296,4 @@ public class Game : MonoBehaviour
 
         gameState_?.SnapPlayersToCurrentTiles();
     }
-
 }
