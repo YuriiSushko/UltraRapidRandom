@@ -1,18 +1,26 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class PickupController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameObject pickupPrefab;
+    [SerializeField] private GameObject collectableOnlyPrefab;
+    [SerializeField] private GameObject movementRulePrefab;
+    [SerializeField] private GameObject passiveAbilityPrefab;
+    [SerializeField] private GameObject activeAbilityPrefab;
 
     [Header("Spawn Rules")]
-    [SerializeField] private int rulePickupCount = 4;
+    [FormerlySerializedAs("rulePickupCount")]
+    [SerializeField] private int maxRulePickupCount = 4;
+    [SerializeField] private float rulePickupRespawnSeconds = 10f;
     [SerializeField] private int minDistanceFromPlayers = 2;
     [SerializeField] private float yOffset = 0.45f;
     [SerializeField] private int maxSpawnAttempts = 100;
 
     private readonly List<PickupObject> activePickups_ = new List<PickupObject>();
+    private readonly List<float> rulePickupRespawnTimers_ = new List<float>();
     private BoardController board_;
 
     public void Initialize(BoardController board)
@@ -23,11 +31,37 @@ public class PickupController : MonoBehaviour
     public void StartRound(PlayerController[] players, bool needsCollectablePickup)
     {
         ClearPickups();
+        rulePickupRespawnTimers_.Clear();
         SpawnRulePickups(players);
 
         if (needsCollectablePickup)
         {
             SpawnCollectablePickup(players);
+        }
+    }
+
+    public void Tick(float deltaTime, PlayerController[] players)
+    {
+        if (deltaTime <= 0f)
+        {
+            return;
+        }
+
+        for (int i = rulePickupRespawnTimers_.Count - 1; i >= 0; i--)
+        {
+            rulePickupRespawnTimers_[i] -= deltaTime;
+
+            if (rulePickupRespawnTimers_[i] > 0f)
+            {
+                continue;
+            }
+
+            rulePickupRespawnTimers_.RemoveAt(i);
+
+            if (GetActiveRulePickupCount() < maxRulePickupCount)
+            {
+                SpawnSingleRulePickup(players);
+            }
         }
     }
 
@@ -59,6 +93,7 @@ public class PickupController : MonoBehaviour
             if (pickup.consumeOnPickup)
             {
                 activePickups_.RemoveAt(i);
+                ScheduleRespawnIfNeeded(pickup);
                 Destroy(pickup.gameObject);
             }
 
@@ -85,22 +120,27 @@ public class PickupController : MonoBehaviour
 
     private void SpawnRulePickups(PlayerController[] players)
     {
-        for (int i = 0; i < rulePickupCount; i++)
+        for (int i = 0; i < maxRulePickupCount; i++)
         {
-            PickupObject pickup = SpawnPickup(players, GetRandomRulePickupKind());
-
-            if (pickup == null)
-            {
-                continue;
-            }
-
-            ConfigureRandomRulePickup(pickup);
+            SpawnSingleRulePickup(players);
         }
     }
 
     private void SpawnCollectablePickup(PlayerController[] players)
     {
         SpawnPickup(players, PickupKind.CollectableOnly);
+    }
+
+    private void SpawnSingleRulePickup(PlayerController[] players)
+    {
+        PickupObject pickup = SpawnPickup(players, GetRandomRulePickupKind());
+
+        if (pickup == null)
+        {
+            return;
+        }
+
+        ConfigureRandomRulePickup(pickup);
     }
 
     private PickupObject SpawnPickup(PlayerController[] players, PickupKind kind)
@@ -116,11 +156,12 @@ public class PickupController : MonoBehaviour
         }
 
         Vector3 worldPosition = board_.GetTileWorldPosition(tileID) + new Vector3(0f, yOffset, 0f);
-        GameObject pickupObject = pickupPrefab != null
-            ? Instantiate(pickupPrefab, worldPosition, Quaternion.identity, transform)
+        GameObject prefab = GetPrefabForKind(kind);
+        GameObject pickupObject = prefab != null
+            ? Instantiate(prefab, worldPosition, Quaternion.identity, transform)
             : GameObject.CreatePrimitive(PrimitiveType.Cube);
 
-        if (pickupPrefab == null)
+        if (prefab == null)
         {
             pickupObject.transform.SetParent(transform);
             pickupObject.transform.position = worldPosition;
@@ -142,6 +183,31 @@ public class PickupController : MonoBehaviour
         activePickups_.Add(pickup);
 
         return pickup;
+    }
+
+    private GameObject GetPrefabForKind(PickupKind kind)
+    {
+        if (kind == PickupKind.CollectableOnly && collectableOnlyPrefab != null)
+        {
+            return collectableOnlyPrefab;
+        }
+
+        if (kind == PickupKind.MovementRule && movementRulePrefab != null)
+        {
+            return movementRulePrefab;
+        }
+
+        if (kind == PickupKind.PassiveAbility && passiveAbilityPrefab != null)
+        {
+            return passiveAbilityPrefab;
+        }
+
+        if (kind == PickupKind.ActiveAbility && activeAbilityPrefab != null)
+        {
+            return activeAbilityPrefab;
+        }
+
+        return pickupPrefab;
     }
 
     private PickupKind GetRandomRulePickupKind()
@@ -179,15 +245,55 @@ public class PickupController : MonoBehaviour
         }
         else if (pickup.kind == PickupKind.ActiveAbility)
         {
-            int firstActiveAbility = 1;
-            int activeAbilityCount = System.Enum.GetValues(typeof(ActivePlayerAbility)).Length;
-            pickup.activeAbility = (ActivePlayerAbility)Random.Range(
-                firstActiveAbility,
-                activeAbilityCount
-            );
+            ActivePlayerAbility[] abilities =
+            {
+                ActivePlayerAbility.HideFirstOpponent,
+                ActivePlayerAbility.SwapWithFirstOpponent
+            };
+
+            pickup.activeAbility = abilities[Random.Range(0, abilities.Length)];
         }
 
         ApplyPickupVisual(pickup);
+    }
+
+    private void ScheduleRespawnIfNeeded(PickupObject pickup)
+    {
+        if (pickup == null || pickup.IsCollectableOnly)
+        {
+            return;
+        }
+
+        if (rulePickupRespawnSeconds <= 0f)
+        {
+            rulePickupRespawnTimers_.Add(0.001f);
+            return;
+        }
+
+        rulePickupRespawnTimers_.Add(rulePickupRespawnSeconds);
+    }
+
+    private int GetActiveRulePickupCount()
+    {
+        int count = 0;
+
+        for (int i = activePickups_.Count - 1; i >= 0; i--)
+        {
+            PickupObject pickup = activePickups_[i];
+
+            if (pickup == null)
+            {
+                activePickups_.RemoveAt(i);
+                continue;
+            }
+
+            if (!pickup.IsCollectableOnly)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private void ApplyPickupVisual(PickupObject pickup)
@@ -308,5 +414,6 @@ public class PickupController : MonoBehaviour
         }
 
         activePickups_.Clear();
+        rulePickupRespawnTimers_.Clear();
     }
 }

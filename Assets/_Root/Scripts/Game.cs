@@ -87,8 +87,8 @@ public class Game : MonoBehaviour
         if (uiManager_ != null)
         {
             uiManager_.UpdateRoundUI(currentRound_);
-            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1GoalDescription);
-            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2GoalDescription);
+            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), GetPlayerGoalText(0));
+            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), GetPlayerGoalText(1));
         }
     }
 
@@ -181,6 +181,38 @@ public class Game : MonoBehaviour
         }
 
         return new List<string>();
+    }
+
+    private string GetPlayerGoalText(int playerIndex)
+    {
+        ActiveGoal goal = GetPlayerGoal(playerIndex);
+
+        if (goal == null)
+        {
+            return string.Empty;
+        }
+
+        if (goal.TargetCount <= 0)
+        {
+            return goal.Description;
+        }
+
+        return $"{goal.Description} ({goal.CurrentCount}/{goal.TargetCount})";
+    }
+
+    private ActiveGoal GetPlayerGoal(int playerIndex)
+    {
+        if (playerIndex == 0)
+        {
+            return player1Goal_;
+        }
+
+        if (playerIndex == 1)
+        {
+            return player2Goal_;
+        }
+
+        return null;
     }
 
     private List<string> SplitRuleSummary(string summary)
@@ -278,13 +310,13 @@ public class Game : MonoBehaviour
         {
             player1Rules_ = rules;
             if (uiManager_ != null && player1Goal_ != null)
-                uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1Goal_.Description);
+                uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), GetPlayerGoalText(0));
         }
         else if (playerIndex == 1)
         {
             player2Rules_ = rules;
             if (uiManager_ != null && player2Goal_ != null)
-                uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2Goal_.Description);
+                uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), GetPlayerGoalText(1));
         }
     }
 
@@ -297,11 +329,11 @@ public class Game : MonoBehaviour
 
         if (playerIndex == 0 && player1Goal_ != null)
         {
-            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1Goal_.Description);
+            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), GetPlayerGoalText(0));
         }
         else if (playerIndex == 1 && player2Goal_ != null)
         {
-            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2Goal_.Description);
+            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), GetPlayerGoalText(1));
         }
     }
 
@@ -347,18 +379,6 @@ public class Game : MonoBehaviour
         ResetPlayerRules(player);
         AssignRandomMovementRule(player);
 
-        if (player.MovementRuleResolver != null)
-        {
-            player.MovementRuleResolver.directionRule = (MovementDirectionRule)Random.Range(0, 3);
-            player.MovementRuleResolver.tileRule = MovementTileRule.AnyTile;
-        }
-
-        if (player.PlayerActionResolver != null)
-        {
-            player.PlayerActionResolver.passiveAbility = PassivePlayerAbility.None;
-            player.PlayerActionResolver.activeAbility = ActivePlayerAbility.None;
-        }
-
         if (goal != null && goal.Type == GoalType.PaintTiles && player.PlayerActionResolver != null)
         {
             player.PlayerActionResolver.passiveAbility = PassivePlayerAbility.PaintCurrentTile;
@@ -403,6 +423,7 @@ public class Game : MonoBehaviour
         if (goalManager_ == null) goalManager_ = FindFirstObjectByType<GoalManager>();
         if (goalManager_ == null) goalManager_ = gameObject.AddComponent<GoalManager>();
         if (pickupController_ == null) pickupController_ = GetComponent<PickupController>();
+        if (pickupController_ == null) pickupController_ = FindFirstObjectByType<PickupController>();
         if (pickupController_ == null) pickupController_ = gameObject.AddComponent<PickupController>();
         if (players == null || players.Length == 0)
         {

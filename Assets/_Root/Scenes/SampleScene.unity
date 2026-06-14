@@ -607,6 +607,7 @@ GameObject:
   - component: {fileID: 250786071}
   - component: {fileID: 250786073}
   - component: {fileID: 250786074}
+  - component: {fileID: 250786075}
   m_Layer: 0
   m_Name: TileGenerator
   m_TagString: Untagged
@@ -678,7 +679,24 @@ MonoBehaviour:
   - {fileID: 1903012738}
   uiManager_: {fileID: 401041263}
   goalManager_: {fileID: 0}
-  pickupController_: {fileID: 0}
+  pickupController_: {fileID: 1399890342}
+  roundCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &250786075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 250786070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91ddd101ed59490b9e167ddc7efb4fa7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GoalManager
+  minTargetCount: 3
+  maxTargetCount: 8
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1782,6 +1800,60 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1399890341
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1399890343}
+  - component: {fileID: 1399890342}
+  m_Layer: 0
+  m_Name: PickupController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1399890342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1399890341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d79d3de63d13bf343b0a4cec045ad3b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupController
+  pickupPrefab: {fileID: 0}
+  collectableOnlyPrefab: {fileID: 0}
+  movementRulePrefab: {fileID: 0}
+  passiveAbilityPrefab: {fileID: 0}
+  activeAbilityPrefab: {fileID: 0}
+  maxRulePickupCount: 4
+  rulePickupRespawnSeconds: 10
+  minDistanceFromPlayers: 4
+  yOffset: 0.45
+  maxSpawnAttempts: 100
+--- !u!4 &1399890343
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1399890341}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.26198, y: -0, z: 3.40647}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1506377536
 GameObject:
   m_ObjectHideFlags: 0
@@ -2375,3 +2447,4 @@ SceneRoots:
   - {fileID: 1756565706}
   - {fileID: 179534907}
   - {fileID: 401041264}
+  - {fileID: 1399890343}

@@ -1,5 +1,5 @@
-using UnityEngine;
 using System;
+using UnityEngine;
 
 public class GameState
 {
@@ -63,6 +63,7 @@ public class GameState
             TickPlayerMover(players_[i], deltaTime);
         }
 
+        TickPickups(deltaTime);
         EvaluateRoundStatus();
         DispatchRoundCompletion();
     }
@@ -252,6 +253,16 @@ public class GameState
         }
     }
 
+    private void TickPickups(float deltaTime)
+    {
+        if (pickupController_ == null)
+        {
+            return;
+        }
+
+        pickupController_.Tick(deltaTime, players_);
+    }
+
     private void RefreshPlayerVisualLayout(bool instant)
     {
         for (int i = 0; i < players_.Length; i++)
@@ -374,7 +385,7 @@ public class GameState
         ApplyActionResult(actionResult);
         TryCompleteActionGoal(playerIndex, actionResult);
 
-        if (actionInput.HasActiveAction)
+        if (actionResult != null && actionResult.HasAnyResult)
         {
             RefreshPlayerRulesUI(playerIndex);
         }
