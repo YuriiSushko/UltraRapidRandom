@@ -107,11 +107,11 @@ public class Game : MonoBehaviour
             case GoalType.CatchOpponent:
                 return new ActiveGoal(selected, "Catch your opponent!");
             case GoalType.PickUpObjects:
-                return new ActiveGoal(selected, $"Pick up {target} objects on the map!", target);
+                return new ActiveGoal(selected, $"Pick up all {target}!", target);
             case GoalType.PaintTiles:
-                return new ActiveGoal(selected, $"Paint {target} tiles total!", target);
+                return new ActiveGoal(selected, $"Paint {target} tiles!", target);
             case GoalType.StepOnSpecialTiles:
-                return new ActiveGoal(selected, $"Step on {target} special tiles!", target);
+                return new ActiveGoal(selected, $"Step on all {target}!", target);
             default:
                 return new ActiveGoal(GoalType.CatchOpponent, "Catch your opponent!");
         }
@@ -210,7 +210,6 @@ public class Game : MonoBehaviour
             return;
         }
 
-        // Counter Accumulation Checks (Fixed duplication bug)
         if (player1Goal_.CurrentCount >= player1Goal_.TargetCount && player1Goal_.TargetCount > 0)
         {
             TriggerRoundEnd(1);
