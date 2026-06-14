@@ -29,6 +29,11 @@ public class GameState
 
         for (int i = 0; i < players_.Length; i++)
         {
+            TryInitializePlayer(players_[i]);
+        }
+
+        for (int i = 0; i < players_.Length; i++)
+        {
             TickPlayer(players_[i], deltaTime);
         }
     }
@@ -47,6 +52,24 @@ public class GameState
         }
 
         return false;
+    }
+
+    private void TryInitializePlayer(PlayerController playerController)
+    {
+        if (playerController == null)
+        {
+            return;
+        }
+
+        PlayerMover playerMover = playerController.GetComponent<PlayerMover>();
+
+        if (playerMover == null)
+        {
+            Debug.LogError($"{playerController.name}: PlayerMover is missing.");
+            return;
+        }
+
+        TryInitialize(playerController, playerMover);
     }
 
     private void TickPlayer(PlayerController playerController, float deltaTime)
@@ -123,9 +146,42 @@ public class GameState
             return;
         }
 
+        if (IsTileOccupiedByOtherPlayer(playerController, result.TargetTile))
+        {
+            return;
+        }
+
         playerController.ApplyMovementResult(result);
         playerMover.MoveTo(result.TargetWorldPosition);
         playerController.ResetMovementCooldown();
+    }
+
+    private bool IsTileOccupiedByOtherPlayer(
+        PlayerController movingPlayer,
+        Vector2Int targetTile
+    )
+    {
+        for (int i = 0; i < players_.Length; i++)
+        {
+            PlayerController otherPlayer = players_[i];
+
+            if (otherPlayer == null || otherPlayer == movingPlayer)
+            {
+                continue;
+            }
+
+            if (!otherPlayer.HasInitialized)
+            {
+                continue;
+            }
+
+            if (otherPlayer.CurrentTile == targetTile)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void TryHandlePlayerActions(PlayerController playerController)
