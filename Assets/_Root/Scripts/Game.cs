@@ -316,6 +316,18 @@ public class Game : MonoBehaviour
 
         ResetPlayerRules(player);
 
+        if (player.MovementRuleResolver != null)
+        {
+            player.MovementRuleResolver.directionRule = (MovementDirectionRule)Random.Range(0, 3);
+            player.MovementRuleResolver.tileRule = MovementTileRule.AnyTile;
+        }
+
+        if (player.PlayerActionResolver != null)
+        {
+            player.PlayerActionResolver.passiveAbility = PassivePlayerAbility.None;
+            player.PlayerActionResolver.activeAbility = ActivePlayerAbility.None;
+        }
+
         if (goal != null && goal.Type == GoalType.PaintTiles && player.PlayerActionResolver != null)
         {
             player.PlayerActionResolver.passiveAbility = PassivePlayerAbility.PaintCurrentTile;
