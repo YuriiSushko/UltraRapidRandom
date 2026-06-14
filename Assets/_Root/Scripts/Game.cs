@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Game : MonoBehaviour
 {
@@ -8,13 +9,12 @@ public class Game : MonoBehaviour
 
     [SerializeField] private UIManager uiManager_;
 
-    // Rules & Goals State
     private int currentRound_ = 1;
     private ActiveGoal player1Goal_;
     private ActiveGoal player2Goal_;
     
-    private string player1Rule_ = "Standard Movement";
-    private string player2Rule_ = "Standard Movement";
+    private List<string> player1Rules_ = new List<string>();
+    private List<string> player2Rules_ = new List<string>();
 
     private GameState gameState_;
 
@@ -36,6 +36,12 @@ public class Game : MonoBehaviour
             if (player != null) player.Initialize(boardController);
         }
 
+        player1Rules_.Clear();
+        player1Rules_.Add("Standard Movement");
+        
+        player2Rules_.Clear();
+        player2Rules_.Add("Standard Movement");
+
         StartNewRound();
     }
 
@@ -50,55 +56,55 @@ public class Game : MonoBehaviour
     }
 
     public void StartNewRound()
-{
-    DetermineSafeAsymmetricGoals(out player1Goal_, out player2Goal_);
-
-    player1Goal_.CurrentCount = 0;
-    player2Goal_.CurrentCount = 0;
-
-    if (uiManager_ != null)
     {
-        uiManager_.UpdateRoundUI(currentRound_);
-        uiManager_.UpdatePlayer1UI(player1Rule_, player1Goal_.Description);
-        uiManager_.UpdatePlayer2UI(player2Rule_, player2Goal_.Description);
+        DetermineSafeAsymmetricGoals(out player1Goal_, out player2Goal_);
+
+        player1Goal_.CurrentCount = 0;
+        player2Goal_.CurrentCount = 0;
+
+        if (uiManager_ != null)
+        {
+            uiManager_.UpdateRoundUI(currentRound_);
+            uiManager_.UpdatePlayer1UI(player1Rules_, player1Goal_.Description);
+            uiManager_.UpdatePlayer2UI(player2Rules_, player2Goal_.Description);
+        }
     }
-}
 
-private void DetermineSafeAsymmetricGoals(out ActiveGoal p1Goal, out ActiveGoal p2Goal)
-{
-    bool playersAreTouching = (players != null && players.Length >= 2 && players[0].CurrentTile == players[1].CurrentTile);
-
-    p1Goal = GenerateRandomGoal();
-
-    while (playersAreTouching && p1Goal.Type == GoalType.CatchOpponent)
+    private void DetermineSafeAsymmetricGoals(out ActiveGoal p1Goal, out ActiveGoal p2Goal)
     {
+        bool playersAreTouching = (players != null && players.Length >= 2 && players[0].CurrentTile == players[1].CurrentTile);
+
         p1Goal = GenerateRandomGoal();
-    }
 
-    p2Goal = GenerateRandomGoal();
-
-    while (true)
-    {
-        bool standardFail = false;
-
-        if (p1Goal.Type == GoalType.CatchOpponent && p2Goal.Type == GoalType.CatchOpponent)
+        while (playersAreTouching && p1Goal.Type == GoalType.CatchOpponent)
         {
-            standardFail = true;
-        }
-
-        if (playersAreTouching && p2Goal.Type == GoalType.CatchOpponent)
-        {
-            standardFail = true;
-        }
-
-        if (!standardFail)
-        {
-            break; 
+            p1Goal = GenerateRandomGoal();
         }
 
         p2Goal = GenerateRandomGoal();
+
+        while (true)
+        {
+            bool standardFail = false;
+
+            if (p1Goal.Type == GoalType.CatchOpponent && p2Goal.Type == GoalType.CatchOpponent)
+            {
+                standardFail = true;
+            }
+
+            if (playersAreTouching && p2Goal.Type == GoalType.CatchOpponent)
+            {
+                standardFail = true;
+            }
+
+            if (!standardFail)
+            {
+                break; 
+            }
+
+            p2Goal = GenerateRandomGoal();
+        }
     }
-}
 
     private ActiveGoal GenerateRandomGoal()
     {
@@ -135,7 +141,7 @@ private void DetermineSafeAsymmetricGoals(out ActiveGoal p1Goal, out ActiveGoal 
             return;
         }
 
-        if (player1Goal_.CurrentCount >= player1Goal_.TargetCount && player1Goal_.TargetCount > 0)
+        // Counter Accumulation Checks (Fixed duplication bug)
         if (player1Goal_.CurrentCount >= player1Goal_.TargetCount && player1Goal_.TargetCount > 0)
         {
             TriggerRoundEnd(1);
@@ -165,6 +171,22 @@ private void DetermineSafeAsymmetricGoals(out ActiveGoal p1Goal, out ActiveGoal 
         if (playerIndex == 0) player1Goal_.CurrentCount += amount;
         if (playerIndex == 1) player2Goal_.CurrentCount += amount;
     }
+    
+    public void SetPlayerRules(int playerIndex, List<string> newRulesList)
+    {
+        if (playerIndex == 0)
+        {
+            player1Rules_ = new List<string>(newRulesList);
+            if (uiManager_ != null && player1Goal_ != null) 
+                uiManager_.UpdatePlayer1UI(player1Rules_, player1Goal_.Description);
+        }
+        else if (playerIndex == 1)
+        {
+            player2Rules_ = new List<string>(newRulesList);
+            if (uiManager_ != null && player2Goal_ != null) 
+                uiManager_.UpdatePlayer2UI(player2Rules_, player2Goal_.Description);
+        }
+    }
 
     private void ResolveReferences()
     {
@@ -174,6 +196,4 @@ private void DetermineSafeAsymmetricGoals(out ActiveGoal p1Goal, out ActiveGoal 
             players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
         }
     }
-    
-    
 }

@@ -26,10 +26,8 @@ public class GameState
 
         for (int i = 0; i < players_.Length; i++)
         {
-            TickPlayer(players_[i], deltaTime);
+            TickPlayer(players_[i], i, deltaTime);
         }
-
-        EvaluateRoundStatus();
     }
 
     private bool HasRequiredReferences()
@@ -48,7 +46,7 @@ public class GameState
         return false;
     }
 
-    private void TickPlayer(PlayerController playerController, float deltaTime)
+    private void TickPlayer(PlayerController playerController, int playerIndex, float deltaTime)
     {
         if (playerController == null)
         {
@@ -72,8 +70,8 @@ public class GameState
 
         playerController.TickTimers(deltaTime);
 
-        TryHandlePlayerMovement(playerController, playerMover);
-        TryHandlePlayerActions(playerController);
+        TryHandlePlayerMovement(playerController, playerMover, playerIndex);
+        TryHandlePlayerActions(playerController, playerIndex);
 
         playerMover.Tick(deltaTime);
     }
@@ -91,7 +89,8 @@ public class GameState
 
     private void TryHandlePlayerMovement(
         PlayerController playerController,
-        PlayerMover playerMover
+        PlayerMover playerMover,
+        int playerIndex
     )
     {
         if (playerMover.IsMoving || !playerController.CanTryMove())
@@ -125,9 +124,18 @@ public class GameState
         playerController.ApplyMovementResult(result);
         playerMover.MoveTo(result.TargetWorldPosition);
         playerController.ResetMovementCooldown();
+
+        Game gameInstance = Object.FindFirstObjectByType<Game>();
+        if (gameInstance != null)
+        {
+            if (result.TargetTileID % 5 == 0)
+            {
+                gameInstance.IncrementPlayerGoalCounter(playerIndex, 1);
+            }
+        }
     }
 
-    private void TryHandlePlayerActions(PlayerController playerController)
+    private void TryHandlePlayerActions(PlayerController playerController, int playerIndex)
     {
         PlayerActionInput actionInput = playerController.GatherActionInput();
 
@@ -148,48 +156,14 @@ public class GameState
         );
 
         boardMutator_.Apply(board_, mutationData);
-    }
-    
-    private void EvaluateRoundStatus()
-    {
-        if (players_.Length < 2) return;
 
-        var goalManager = Object.FindFirstObjectByType<GoalManager>();
-        var ui = Object.FindFirstObjectByType<UIManager>();
-        var game = Object.FindFirstObjectByType<Game>();
-    
-        if (goalManager == null || game == null) return;
-
-        int resultP1 = goalManager.ProcessStepEvaluations(
-            0, 
-            players_[0].CurrentTile, 
-            board_.GetTileID(players_[0].CurrentTile), 
-            players_[1].CurrentTile
-        );
-
-        int resultP2 = goalManager.ProcessStepEvaluations(
-            1, 
-            players_[1].CurrentTile, 
-            board_.GetTileID(players_[1].CurrentTile), 
-            players_[0].CurrentTile
-        );
-
-        if (resultP1 != 0 || resultP2 != 0)
+        if (actionInput.HasActiveAction)
         {
-            int winner = (resultP1 != 0) ? 1 : 2;
-        
-            if (ui != null) ui.TriggerNewRoundPopup(winner);
-
-            goalManager.RollNewGoals(out string newP1Desc, out string newP2Desc);
-            goalManager.InitializeMapObjectives(board_);
-
-            if (ui != null)
+            Game gameInstance = Object.FindFirstObjectByType<Game>();
+            if (gameInstance != null)
             {
-                ui.UpdatePlayer1UI("Keep current rule active", newP1Desc);
-                ui.UpdatePlayer2UI("Keep current rule active", newP2Desc);
+                gameInstance.IncrementPlayerGoalCounter(playerIndex, 1);
             }
         }
     }
 }
-
-

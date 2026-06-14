@@ -1,6 +1,8 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text;  
 
 public class UIManager : MonoBehaviour
 {
@@ -20,16 +22,47 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI popupText;
     [SerializeField] private float popupDisplayDuration = 3f;
 
-    public void UpdatePlayer1UI(string rule, string goal)
-    {
-        if (player1RuleText != null) player1RuleText.text = $"Rule: {rule}";
-        if (player1GoalText != null) player1GoalText.text = $"Goal: {goal}";
-    }
 
-    public void UpdatePlayer2UI(string rule, string goal)
+    public void UpdatePlayer1UI(List<string> activeRules, string goal)
     {
-        if (player2RuleText != null) player2RuleText.text = $"Rule: {rule}";
-        if (player2GoalText != null) player2GoalText.text = $"Goal: {goal}";
+        if (player1RuleText != null) 
+        {
+            player1RuleText.text = FormatRulesText(activeRules);
+        }
+        if (player1GoalText != null) 
+        {
+            player1GoalText.text = $"Goal: {goal}";
+        }
+    }
+    
+    public void UpdatePlayer2UI(List<string> activeRules, string goal)
+    {
+        if (player2RuleText != null) 
+        {
+            player2RuleText.text = FormatRulesText(activeRules);
+        }
+        if (player2GoalText != null) 
+        {
+            player2GoalText.text = $"Goal: {goal}";
+        }
+    }
+    
+    private string FormatRulesText(List<string> rules)
+    {
+        if (rules == null || rules.Count == 0)
+        {
+            return "Rules:\n• Standard Movement";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("Rules:");
+
+        for (int i = 0; i < rules.Count; i++)
+        {
+            sb.AppendLine($"• {rules[i]}");
+        }
+
+        return sb.ToString().TrimEnd();
     }
 
     public void UpdateRoundUI(int roundNumber)
