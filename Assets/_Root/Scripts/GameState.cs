@@ -22,15 +22,14 @@ public class GameState
 
     public void AdvanceTick(float deltaTime)
     {
-        if (!HasRequiredReferences())
-        {
-            return;
-        }
+        if (!HasRequiredReferences()) return;
 
         for (int i = 0; i < players_.Length; i++)
         {
             TickPlayer(players_[i], deltaTime);
         }
+
+        EvaluateRoundStatus();
     }
 
     private bool HasRequiredReferences()
@@ -150,4 +149,47 @@ public class GameState
 
         boardMutator_.Apply(board_, mutationData);
     }
+    
+    private void EvaluateRoundStatus()
+    {
+        if (players_.Length < 2) return;
+
+        var goalManager = Object.FindFirstObjectByType<GoalManager>();
+        var ui = Object.FindFirstObjectByType<UIManager>();
+        var game = Object.FindFirstObjectByType<Game>();
+    
+        if (goalManager == null || game == null) return;
+
+        int resultP1 = goalManager.ProcessStepEvaluations(
+            0, 
+            players_[0].CurrentTile, 
+            board_.GetTileID(players_[0].CurrentTile), 
+            players_[1].CurrentTile
+        );
+
+        int resultP2 = goalManager.ProcessStepEvaluations(
+            1, 
+            players_[1].CurrentTile, 
+            board_.GetTileID(players_[1].CurrentTile), 
+            players_[0].CurrentTile
+        );
+
+        if (resultP1 != 0 || resultP2 != 0)
+        {
+            int winner = (resultP1 != 0) ? 1 : 2;
+        
+            if (ui != null) ui.TriggerNewRoundPopup(winner);
+
+            goalManager.RollNewGoals(out string newP1Desc, out string newP2Desc);
+            goalManager.InitializeMapObjectives(board_);
+
+            if (ui != null)
+            {
+                ui.UpdatePlayer1UI("Keep current rule active", newP1Desc);
+                ui.UpdatePlayer2UI("Keep current rule active", newP2Desc);
+            }
+        }
+    }
 }
+
+
