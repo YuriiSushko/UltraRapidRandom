@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class GameState
 {
@@ -7,23 +8,28 @@ public class GameState
     private readonly Game game_;
     private readonly BoardController board_;
     private readonly GoalManager goalManager_;
+    private readonly PickupController pickupController_;
     private readonly PlayerController[] players_;
     private readonly MovementValidator movementValidator_ = new MovementValidator();
     private readonly BoardMutator boardMutator_ = new BoardMutator();
 
+    public event Action<int> RoundCompleted;
+
     private bool hasLoggedMissingReferences_;
-    private bool roundEndedThisTick_;
+    private int pendingRoundWinner_;
 
     public GameState(
         Game game,
         BoardController board,
         GoalManager goalManager,
+        PickupController pickupController,
         PlayerController[] players
     )
     {
         game_ = game;
         board_ = board;
         goalManager_ = goalManager;
+        pickupController_ = pickupController;
         players_ = players != null
             ? players
             : new PlayerController[0];
@@ -33,7 +39,7 @@ public class GameState
     {
         if (!HasRequiredReferences()) return;
 
-        roundEndedThisTick_ = false;
+        pendingRoundWinner_ = 0;
 
         for (int i = 0; i < players_.Length; i++)
         {
@@ -44,9 +50,9 @@ public class GameState
         {
             TickPlayer(players_[i], i, deltaTime);
 
-            if (roundEndedThisTick_)
+            if (HasPendingRoundCompletion())
             {
-                return;
+                break;
             }
         }
 
@@ -58,6 +64,7 @@ public class GameState
         }
 
         EvaluateRoundStatus();
+        DispatchRoundCompletion();
     }
 
     public void SnapPlayersToCurrentTiles()
@@ -124,6 +131,12 @@ public class GameState
         playerController.TickTimers(deltaTime);
 
         TryHandlePlayerMovement(playerController, playerMover);
+
+        if (HasPendingRoundCompletion())
+        {
+            return;
+        }
+
         TryHandlePlayerActions(playerController, playerIndex);
     }
 
@@ -173,6 +186,55 @@ public class GameState
 
         playerController.ApplyMovementResult(result);
         playerController.ResetMovementCooldown();
+        TryHandlePickup(playerController, result.TargetTileID);
+    }
+
+    private void TryHandlePickup(PlayerController playerController, int tileID)
+    {
+        if (pickupController_ == null || playerController == null)
+        {
+            return;
+        }
+
+        int playerIndex = GetPlayerIndex(playerController);
+
+        if (playerIndex < 0)
+        {
+            return;
+        }
+
+        PickupCollectionResult pickup = pickupController_.TryCollectAtTile(playerController, tileID);
+
+        if (pickup == null)
+        {
+            return;
+        }
+
+        if (pickup.IsCollectableOnly && goalManager_ != null)
+        {
+            int winner = goalManager_.ReportPickupCollected(playerIndex, tileID);
+            if (TryRequestRoundCompletion(winner))
+            {
+                return;
+            }
+
+            pickupController_.EnsureCollectablePickup(players_);
+        }
+
+        RefreshPlayerRulesUI(playerIndex);
+    }
+
+    private int GetPlayerIndex(PlayerController playerController)
+    {
+        for (int i = 0; i < players_.Length; i++)
+        {
+            if (players_[i] == playerController)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private void TickPlayerMover(PlayerController playerController, float deltaTime)
@@ -326,11 +388,7 @@ public class GameState
         }
 
         int winner = goalManager_.ProcessActionEvaluations(playerIndex, actionResult);
-
-        if (winner != 0)
-        {
-            CompleteRound(winner);
-        }
+        TryRequestRoundCompletion(winner);
     }
 
     private void RefreshPlayerRulesUI(int playerIndex)
@@ -408,7 +466,7 @@ public class GameState
 
     private void EvaluateRoundStatus()
     {
-        if (roundEndedThisTick_)
+        if (HasPendingRoundCompletion())
         {
             return;
         }
@@ -434,19 +492,36 @@ public class GameState
         if (resultP1 != 0 || resultP2 != 0)
         {
             int winner = (resultP1 != 0) ? 1 : 2;
-            CompleteRound(winner);
+            TryRequestRoundCompletion(winner);
         }
     }
 
-    private void CompleteRound(int winner)
+    private bool TryRequestRoundCompletion(int winner)
     {
-        if (game_ == null)
+        if (winner == 0 || pendingRoundWinner_ != 0)
+        {
+            return false;
+        }
+
+        pendingRoundWinner_ = winner;
+        return true;
+    }
+
+    private bool HasPendingRoundCompletion()
+    {
+        return pendingRoundWinner_ != 0;
+    }
+
+    private void DispatchRoundCompletion()
+    {
+        if (pendingRoundWinner_ == 0)
         {
             return;
         }
 
-        roundEndedThisTick_ = true;
-        game_.HandleGoalManagerRoundEnd(winner);
+        int winner = pendingRoundWinner_;
+        pendingRoundWinner_ = 0;
+        RoundCompleted?.Invoke(winner);
     }
 
 }

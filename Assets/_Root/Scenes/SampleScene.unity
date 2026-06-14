@@ -477,7 +477,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e6ef71b07a34584a9a97d50463bdf35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRuleResolver
-  directionRule: 2
+  directionRule: 1
   tileRule: 0
   affectedTileIDs: 
   affectedTileMaterials: []
@@ -515,7 +515,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0533f6655c14335baefcf94bedef575, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerActionResolver
-  passiveAbility: 0
+  passiveAbility: 1
   passivePaintMaterial: {fileID: -876546973899608171, guid: 2476a2d151e824143af40dce1fc93a12, type: 3}
   activeAbility: 2
   hideOpponentSeconds: 2
@@ -678,6 +678,7 @@ MonoBehaviour:
   - {fileID: 1903012738}
   uiManager_: {fileID: 401041263}
   goalManager_: {fileID: 0}
+  pickupController_: {fileID: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0

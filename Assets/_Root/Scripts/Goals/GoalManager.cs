@@ -11,7 +11,8 @@ public class GoalManager : MonoBehaviour
     private HashSet<int> paintedTilesP2_ = new HashSet<int>();
     private HashSet<int> steppedSpecialTilesP1_ = new HashSet<int>();
     private HashSet<int> steppedSpecialTilesP2_ = new HashSet<int>();
-    
+    private Dictionary<int, int> paintOwnerByTileID_ = new Dictionary<int, int>();
+
     private HashSet<int> specialTileIDs_ = new HashSet<int>();
     private HashSet<int> spawnedItemTileIDs_ = new HashSet<int>();
 
@@ -31,13 +32,14 @@ public class GoalManager : MonoBehaviour
             else if (i % 11 == 0) spawnedItemTileIDs_.Add(i);
         }
     }
-    
+
     public void RollNewGoals(out string p1Desc, out string p2Desc)
     {
         paintedTilesP1_.Clear();
         paintedTilesP2_.Clear();
         steppedSpecialTilesP1_.Clear();
         steppedSpecialTilesP2_.Clear();
+        paintOwnerByTileID_.Clear();
 
         p1Goal_ = GenerateRandomGoal();
         p2Goal_ = GenerateRandomGoal();
@@ -61,6 +63,22 @@ public class GoalManager : MonoBehaviour
         return null;
     }
 
+    public bool TryGetGoalProgress(int playerIndex, out int currentCount, out int targetCount)
+    {
+        ActiveGoal activeGoal = GetGoal(playerIndex);
+
+        if (activeGoal == null)
+        {
+            currentCount = 0;
+            targetCount = 0;
+            return false;
+        }
+
+        currentCount = activeGoal.CurrentCount;
+        targetCount = activeGoal.TargetCount;
+        return activeGoal.TargetCount > 0;
+    }
+
     private ActiveGoal GenerateRandomGoal()
     {
         GoalType selected = (GoalType)Random.Range(0, 4);
@@ -80,7 +98,7 @@ public class GoalManager : MonoBehaviour
                 return new ActiveGoal(GoalType.CatchOpponent, "Catch your opponent!");
         }
     }
-    
+
     public int ProcessStepEvaluations(int actingPlayerIndex, Vector2Int currentTile, int currentTileID, Vector2Int opponentTile)
     {
         ActiveGoal activeGoal = (actingPlayerIndex == 0) ? p1Goal_ : p2Goal_;
@@ -107,13 +125,6 @@ public class GoalManager : MonoBehaviour
                 break;
 
             case GoalType.PickUpObjects:
-                if (spawnedItemTileIDs_.Contains(currentTileID))
-                {
-                    spawnedItemTileIDs_.Remove(currentTileID);
-                    
-                    activeGoal.CurrentCount++;
-                    if (activeGoal.CurrentCount >= activeGoal.TargetCount) return actingPlayerIndex + 1;
-                }
                 break;
         }
 
@@ -122,36 +133,102 @@ public class GoalManager : MonoBehaviour
 
     public int ProcessActionEvaluations(int actingPlayerIndex, PlayerActionResult actionResult)
     {
-        ActiveGoal activeGoal = (actingPlayerIndex == 0) ? p1Goal_ : p2Goal_;
-
-        if (activeGoal == null || activeGoal.Type != GoalType.PaintTiles)
-        {
-            return 0;
-        }
-
         if (actionResult == null || actionResult.BoardMutations == null || !actionResult.BoardMutations.HasMutations)
         {
             return 0;
         }
 
-        HashSet<int> myPaintSet = (actingPlayerIndex == 0) ? paintedTilesP1_ : paintedTilesP2_;
-
         for (int i = 0; i < actionResult.BoardMutations.Mutations.Count; i++)
         {
             BoardMutation mutation = actionResult.BoardMutations.Mutations[i];
 
-            if (mutation.TileID < 0 || mutation.TileMaterial == null || myPaintSet.Contains(mutation.TileID))
+            if (mutation.TileID < 0 || mutation.TileMaterial == null)
             {
                 continue;
             }
 
-            myPaintSet.Add(mutation.TileID);
-            activeGoal.CurrentCount = myPaintSet.Count;
+            int winner = ReportTilePainted(actingPlayerIndex, mutation.TileID);
 
-            if (activeGoal.CurrentCount >= activeGoal.TargetCount)
+            if (winner != 0)
             {
-                return actingPlayerIndex + 1;
+                return winner;
             }
+        }
+
+        return 0;
+    }
+
+    public int ReportTilePainted(int actingPlayerIndex, int tileID)
+    {
+        if (tileID < 0)
+        {
+            return 0;
+        }
+
+        if (paintOwnerByTileID_.TryGetValue(tileID, out int previousOwner))
+        {
+            if (previousOwner == actingPlayerIndex)
+            {
+                return TryCompletePaintGoal(actingPlayerIndex);
+            }
+
+            GetPaintedTiles(previousOwner).Remove(tileID);
+            UpdatePaintGoalCount(previousOwner);
+        }
+
+        paintOwnerByTileID_[tileID] = actingPlayerIndex;
+        GetPaintedTiles(actingPlayerIndex).Add(tileID);
+        UpdatePaintGoalCount(actingPlayerIndex);
+
+        return TryCompletePaintGoal(actingPlayerIndex);
+    }
+
+    public int ReportPickupCollected(int actingPlayerIndex, int tileID)
+    {
+        ActiveGoal activeGoal = GetGoal(actingPlayerIndex);
+
+        if (activeGoal == null || activeGoal.Type != GoalType.PickUpObjects)
+        {
+            return 0;
+        }
+
+        activeGoal.CurrentCount++;
+
+        if (activeGoal.CurrentCount >= activeGoal.TargetCount)
+        {
+            return actingPlayerIndex + 1;
+        }
+
+        return 0;
+    }
+
+    private HashSet<int> GetPaintedTiles(int playerIndex)
+    {
+        return playerIndex == 0
+            ? paintedTilesP1_
+            : paintedTilesP2_;
+    }
+
+    private void UpdatePaintGoalCount(int playerIndex)
+    {
+        ActiveGoal activeGoal = GetGoal(playerIndex);
+
+        if (activeGoal != null && activeGoal.Type == GoalType.PaintTiles)
+        {
+            activeGoal.CurrentCount = GetPaintedTiles(playerIndex).Count;
+        }
+    }
+
+    private int TryCompletePaintGoal(int playerIndex)
+    {
+        ActiveGoal activeGoal = GetGoal(playerIndex);
+
+        if (activeGoal != null
+            && activeGoal.Type == GoalType.PaintTiles
+            && activeGoal.TargetCount > 0
+            && activeGoal.CurrentCount >= activeGoal.TargetCount)
+        {
+            return playerIndex + 1;
         }
 
         return 0;
