@@ -90,6 +90,11 @@ public class UIManager : MonoBehaviour
             StopAllCoroutines();
             popupPanel.SetActive(true);
         
+            if (restartButton != null)
+            {
+                restartButton.SetActive(true);
+            }
+        
             if (ultimateWinner == 0)
             {
                 popupText.text = "MATCH OVER!\nIT'S A DRAW!";
@@ -110,4 +115,9 @@ public class UIManager : MonoBehaviour
 
         popupPanel.SetActive(false);
     }
+    
+    [Header("End Game Controls")]
+    public GameObject restartButton;
+    
+    
 }

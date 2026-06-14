@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour
 {
@@ -415,5 +416,10 @@ public class Game : MonoBehaviour
         }
 
         gameState_?.SnapPlayersToCurrentTiles();
+    }
+    
+    public void RestartMatch()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
