@@ -54,6 +54,22 @@ public class Game : MonoBehaviour
         player1Goal_ = GenerateRandomGoal();
         player2Goal_ = GenerateRandomGoal();
 
+       
+        bool playersAreTouching = (players != null && players.Length >= 2 && players[0].CurrentTile == players[1].CurrentTile);
+    
+        if (playersAreTouching)
+        {
+            while (player1Goal_.Type == GoalType.CatchOpponent)
+            {
+                player1Goal_ = GenerateRandomGoal();
+            }
+
+            while (player2Goal_.Type == GoalType.CatchOpponent)
+            {
+                player2Goal_ = GenerateRandomGoal();
+            }
+        }
+
         if (uiManager_ != null)
         {
             uiManager_.UpdateRoundUI(currentRound_);
@@ -98,6 +114,7 @@ public class Game : MonoBehaviour
         }
 
         if (player1Goal_.CurrentCount >= player1Goal_.TargetCount && player1Goal_.TargetCount > 0)
+        if (player1Goal_.CurrentCount >= player1Goal_.TargetCount && player1Goal_.TargetCount > 0)
         {
             TriggerRoundEnd(1);
             return;
@@ -135,4 +152,6 @@ public class Game : MonoBehaviour
             players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);
         }
     }
+    
+    
 }
