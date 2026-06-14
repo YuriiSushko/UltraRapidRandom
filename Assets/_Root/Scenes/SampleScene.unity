@@ -516,9 +516,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerActionResolver
   passiveAbility: 0
-  passivePaintMaterial: {fileID: 0}
+  passivePaintMaterial: {fileID: -876546973899608171, guid: 2476a2d151e824143af40dce1fc93a12, type: 3}
   activeAbility: 2
-  activePaintMaterial: {fileID: 0}
   hideOpponentSeconds: 2
 --- !u!1 &233895795
 GameObject:
@@ -678,6 +677,7 @@ MonoBehaviour:
   - {fileID: 211189795}
   - {fileID: 1903012738}
   uiManager_: {fileID: 401041263}
+  goalManager_: {fileID: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -2357,9 +2357,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerActionResolver
   passiveAbility: 1
-  passivePaintMaterial: {fileID: -876546973899608171, guid: 2476a2d151e824143af40dce1fc93a12, type: 3}
+  passivePaintMaterial: {fileID: 2100000, guid: c2e40fa84d53ccd428f640eac126b1fb, type: 2}
   activeAbility: 2
-  activePaintMaterial: {fileID: 0}
   hideOpponentSeconds: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

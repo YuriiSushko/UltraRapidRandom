@@ -23,6 +23,11 @@ public class BoardController : MonoBehaviour
     {
         if (tileGenerator_ == null)
         {
+            tileGenerator_ = GetComponent<TileGenerator>();
+        }
+
+        if (tileGenerator_ == null)
+        {
             Debug.LogError("TileGenerator is not assigned.");
             return;
         }

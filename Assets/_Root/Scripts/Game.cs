@@ -8,6 +8,7 @@ public class Game : MonoBehaviour
     public PlayerController[] players = new PlayerController[0];
 
     [SerializeField] private UIManager uiManager_;
+    [SerializeField] private GoalManager goalManager_;
 
     private int currentRound_ = 1;
     private ActiveGoal player1Goal_;
@@ -21,7 +22,7 @@ public class Game : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
-        gameState_ = new GameState(boardController, players);
+        gameState_ = new GameState(this, boardController, goalManager_, players);
     }
 
     private void Start()
@@ -43,21 +44,43 @@ public class Game : MonoBehaviour
             gameState_.AdvanceTick(Time.deltaTime);
         }
 
-        EvaluateGoalCompletion();
+        if (goalManager_ == null)
+        {
+            EvaluateGoalCompletion();
+        }
     }
 
     public void StartNewRound()
     {
-        DetermineSafeAsymmetricGoals(out player1Goal_, out player2Goal_);
+        string player1GoalDescription;
+        string player2GoalDescription;
 
-        player1Goal_.CurrentCount = 0;
-        player2Goal_.CurrentCount = 0;
+        if (goalManager_ != null && boardController != null && boardController.HasGenerated)
+        {
+            goalManager_.RollNewGoals(out player1GoalDescription, out player2GoalDescription);
+            goalManager_.InitializeMapObjectives(boardController);
+
+            player1Goal_ = goalManager_.GetGoal(0);
+            player2Goal_ = goalManager_.GetGoal(1);
+        }
+        else
+        {
+            DetermineSafeAsymmetricGoals(out player1Goal_, out player2Goal_);
+
+            player1Goal_.CurrentCount = 0;
+            player2Goal_.CurrentCount = 0;
+
+            player1GoalDescription = player1Goal_.Description;
+            player2GoalDescription = player2Goal_.Description;
+        }
+
+        ConfigurePlayersForGoals();
 
         if (uiManager_ != null)
         {
             uiManager_.UpdateRoundUI(currentRound_);
-            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1Goal_.Description);
-            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2Goal_.Description);
+            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1GoalDescription);
+            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2GoalDescription);
         }
     }
 
@@ -115,15 +138,6 @@ public class Game : MonoBehaviour
             default:
                 return new ActiveGoal(GoalType.CatchOpponent, "Catch your opponent!");
         }
-    }
-
-    private string GetPlayerRuleText(int playerIndex)
-    {
-        PlayerController player = GetPlayer(playerIndex);
-
-        return player != null
-            ? player.GetRuleSummary()
-            : "No player assigned";
     }
 
     private List<string> GetPlayerRuleList(int playerIndex)
@@ -235,6 +249,11 @@ public class Game : MonoBehaviour
         StartNewRound();
     }
 
+    public void HandleGoalManagerRoundEnd(int winningPlayerNumber)
+    {
+        TriggerRoundEnd(winningPlayerNumber);
+    }
+
     public void IncrementPlayerGoalCounter(int playerIndex, int amount = 1)
     {
         if (playerIndex == 0) player1Goal_.CurrentCount += amount;
@@ -261,9 +280,69 @@ public class Game : MonoBehaviour
         }
     }
 
+    public void RefreshPlayerUI(int playerIndex)
+    {
+        if (uiManager_ == null)
+        {
+            return;
+        }
+
+        if (playerIndex == 0 && player1Goal_ != null)
+        {
+            uiManager_.UpdatePlayer1UI(GetPlayerRuleList(0), player1Goal_.Description);
+        }
+        else if (playerIndex == 1 && player2Goal_ != null)
+        {
+            uiManager_.UpdatePlayer2UI(GetPlayerRuleList(1), player2Goal_.Description);
+        }
+    }
+
+    private void ConfigurePlayersForGoals()
+    {
+        player1Rules_.Clear();
+        player2Rules_.Clear();
+
+        ConfigurePlayerForGoal(GetPlayer(0), player1Goal_);
+        ConfigurePlayerForGoal(GetPlayer(1), player2Goal_);
+    }
+
+    private void ConfigurePlayerForGoal(PlayerController player, ActiveGoal goal)
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        player.ResolveReferences();
+
+        ResetPlayerRules(player);
+
+        if (goal != null && goal.Type == GoalType.PaintTiles && player.PlayerActionResolver != null)
+        {
+            player.PlayerActionResolver.passiveAbility = PassivePlayerAbility.PaintCurrentTile;
+        }
+    }
+
+    private void ResetPlayerRules(PlayerController player)
+    {
+        if (player.MovementRuleResolver != null)
+        {
+            player.MovementRuleResolver.directionRule = MovementDirectionRule.CannotMoveDiagonally;
+            player.MovementRuleResolver.tileRule = MovementTileRule.AnyTile;
+        }
+
+        if (player.PlayerActionResolver != null)
+        {
+            player.PlayerActionResolver.passiveAbility = PassivePlayerAbility.None;
+            player.PlayerActionResolver.activeAbility = ActivePlayerAbility.None;
+        }
+    }
+
     private void ResolveReferences()
     {
         if (boardController == null) boardController = GetComponent<BoardController>();
+        if (goalManager_ == null) goalManager_ = GetComponent<GoalManager>();
+        if (goalManager_ == null) goalManager_ = FindFirstObjectByType<GoalManager>();
         if (players == null || players.Length == 0)
         {
             players = FindObjectsByType<PlayerController>(FindObjectsSortMode.None);

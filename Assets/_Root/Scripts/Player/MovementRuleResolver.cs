@@ -26,30 +26,31 @@ public class MovementRuleResolver : MonoBehaviour
 
     public MovementRuleData ResolveRules(Vector2Int currentTile, Vector2Int direction)
     {
-        bool canMoveDiagonally = directionRule != MovementDirectionRule.CannotMoveDiagonally;
-        bool mustMoveDiagonally = directionRule == MovementDirectionRule.OnlyMoveDiagonally;
-        bool limitMovementToWalkableTiles = tileRule == MovementTileRule.CanOnlyWalkOnTiles;
-        int[] walkableTileIDs = limitMovementToWalkableTiles
+        bool canUseDiagonal = directionRule != MovementDirectionRule.CannotMoveDiagonally;
+        bool mustUseDiagonal = directionRule == MovementDirectionRule.OnlyMoveDiagonally;
+        bool limitToWalkable = tileRule == MovementTileRule.CanOnlyWalkOnTiles;
+
+        int[] resolvedWalkableTileIDs = tileRule == MovementTileRule.CanOnlyWalkOnTiles
             ? affectedTileIDs
             : null;
-        int[] blockedTileIDs = tileRule == MovementTileRule.CannotWalkOnTiles
-            ? affectedTileIDs
-            : null;
-        Material[] walkableTileMaterials = limitMovementToWalkableTiles
+        Material[] resolvedWalkableTileMaterials = tileRule == MovementTileRule.CanOnlyWalkOnTiles
             ? affectedTileMaterials
             : null;
-        Material[] blockedTileMaterials = tileRule == MovementTileRule.CannotWalkOnTiles
+        int[] resolvedBlockedTileIDs = tileRule == MovementTileRule.CannotWalkOnTiles
+            ? affectedTileIDs
+            : null;
+        Material[] resolvedBlockedTileMaterials = tileRule == MovementTileRule.CannotWalkOnTiles
             ? affectedTileMaterials
             : null;
 
         return new MovementRuleData(
-            canMoveDiagonally,
-            mustMoveDiagonally,
-            limitMovementToWalkableTiles,
-            walkableTileIDs,
-            blockedTileIDs,
-            walkableTileMaterials,
-            blockedTileMaterials
+            canUseDiagonal,
+            mustUseDiagonal,
+            limitToWalkable,
+            resolvedWalkableTileIDs,
+            resolvedBlockedTileIDs,
+            resolvedWalkableTileMaterials,
+            resolvedBlockedTileMaterials
         );
     }
 
@@ -90,92 +91,14 @@ public class MovementRuleResolver : MonoBehaviour
     {
         if (tileRule == MovementTileRule.CannotWalkOnTiles)
         {
-            return $"Avoid {GetAffectedTilesText()}";
+            return "Avoid marked tiles";
         }
 
         if (tileRule == MovementTileRule.CanOnlyWalkOnTiles)
         {
-            return $"Only {GetAffectedTilesText()}";
+            return "Only marked tiles";
         }
 
         return string.Empty;
-    }
-
-    private string GetAffectedTilesText()
-    {
-        string tileIDs = GetTileIDsText();
-        string materials = GetMaterialsText();
-
-        if (tileIDs.Length > 0 && materials.Length > 0)
-        {
-            return $"{tileIDs}; {materials}";
-        }
-
-        if (tileIDs.Length > 0)
-        {
-            return tileIDs;
-        }
-
-        if (materials.Length > 0)
-        {
-            return materials;
-        }
-
-        return "selected";
-    }
-
-    private string GetTileIDsText()
-    {
-        if (affectedTileIDs == null || affectedTileIDs.Length == 0)
-        {
-            return string.Empty;
-        }
-
-        string text = "#";
-
-        for (int i = 0; i < affectedTileIDs.Length; i++)
-        {
-            if (i > 0)
-            {
-                text += "/";
-            }
-
-            text += affectedTileIDs[i].ToString();
-        }
-
-        return text;
-    }
-
-    private string GetMaterialsText()
-    {
-        if (affectedTileMaterials == null || affectedTileMaterials.Length == 0)
-        {
-            return string.Empty;
-        }
-
-        string text = string.Empty;
-        bool hasAnyMaterial = false;
-
-        for (int i = 0; i < affectedTileMaterials.Length; i++)
-        {
-            Material material = affectedTileMaterials[i];
-
-            if (material == null)
-            {
-                continue;
-            }
-
-            if (hasAnyMaterial)
-            {
-                text += "/";
-            }
-
-            text += material.name;
-            hasAnyMaterial = true;
-        }
-
-        return hasAnyMaterial
-            ? text
-            : string.Empty;
     }
 }

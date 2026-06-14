@@ -9,6 +9,8 @@ public class GoalManager : MonoBehaviour
 
     private HashSet<int> paintedTilesP1_ = new HashSet<int>();
     private HashSet<int> paintedTilesP2_ = new HashSet<int>();
+    private HashSet<int> steppedSpecialTilesP1_ = new HashSet<int>();
+    private HashSet<int> steppedSpecialTilesP2_ = new HashSet<int>();
     
     private HashSet<int> specialTileIDs_ = new HashSet<int>();
     private HashSet<int> spawnedItemTileIDs_ = new HashSet<int>();
@@ -34,12 +36,29 @@ public class GoalManager : MonoBehaviour
     {
         paintedTilesP1_.Clear();
         paintedTilesP2_.Clear();
+        steppedSpecialTilesP1_.Clear();
+        steppedSpecialTilesP2_.Clear();
 
         p1Goal_ = GenerateRandomGoal();
         p2Goal_ = GenerateRandomGoal();
 
         p1Desc = p1Goal_.Description;
         p2Desc = p2Goal_.Description;
+    }
+
+    public ActiveGoal GetGoal(int playerIndex)
+    {
+        if (playerIndex == 0)
+        {
+            return p1Goal_;
+        }
+
+        if (playerIndex == 1)
+        {
+            return p2Goal_;
+        }
+
+        return null;
     }
 
     private ActiveGoal GenerateRandomGoal()
@@ -54,7 +73,7 @@ public class GoalManager : MonoBehaviour
             case GoalType.PickUpObjects:
                 return new ActiveGoal(selected, $"Collect {targetValue} glowing items from the map!", targetValue);
             case GoalType.PaintTiles:
-                return new ActiveGoal(selected, $"Paint {targetValue} tiles! (Step on unpainted tiles)", targetValue);
+                return new ActiveGoal(selected, $"Paint {targetValue} tiles!", targetValue);
             case GoalType.StepOnSpecialTiles:
                 return new ActiveGoal(selected, $"Activate {targetValue} special marked tiles!", targetValue);
             default:
@@ -66,26 +85,23 @@ public class GoalManager : MonoBehaviour
     {
         ActiveGoal activeGoal = (actingPlayerIndex == 0) ? p1Goal_ : p2Goal_;
 
+        if (activeGoal == null)
+        {
+            return 0;
+        }
+
         switch (activeGoal.Type)
         {
             case GoalType.CatchOpponent:
                 if (currentTile == opponentTile) return actingPlayerIndex + 1;
                 break;
 
-            case GoalType.PaintTiles:
-                HashSet<int> myPaintSet = (actingPlayerIndex == 0) ? paintedTilesP1_ : paintedTilesP2_;
-                if (!myPaintSet.Contains(currentTileID))
-                {
-                    myPaintSet.Add(currentTileID);
-                    activeGoal.CurrentCount = myPaintSet.Count;
-                    if (activeGoal.CurrentCount >= activeGoal.TargetCount) return actingPlayerIndex + 1;
-                }
-                break;
-
             case GoalType.StepOnSpecialTiles:
-                if (specialTileIDs_.Contains(currentTileID))
+                HashSet<int> mySpecialSet = (actingPlayerIndex == 0) ? steppedSpecialTilesP1_ : steppedSpecialTilesP2_;
+                if (specialTileIDs_.Contains(currentTileID) && !mySpecialSet.Contains(currentTileID))
                 {
-                    activeGoal.CurrentCount++;
+                    mySpecialSet.Add(currentTileID);
+                    activeGoal.CurrentCount = mySpecialSet.Count;
                     if (activeGoal.CurrentCount >= activeGoal.TargetCount) return actingPlayerIndex + 1;
                 }
                 break;
@@ -99,6 +115,43 @@ public class GoalManager : MonoBehaviour
                     if (activeGoal.CurrentCount >= activeGoal.TargetCount) return actingPlayerIndex + 1;
                 }
                 break;
+        }
+
+        return 0;
+    }
+
+    public int ProcessActionEvaluations(int actingPlayerIndex, PlayerActionResult actionResult)
+    {
+        ActiveGoal activeGoal = (actingPlayerIndex == 0) ? p1Goal_ : p2Goal_;
+
+        if (activeGoal == null || activeGoal.Type != GoalType.PaintTiles)
+        {
+            return 0;
+        }
+
+        if (actionResult == null || actionResult.BoardMutations == null || !actionResult.BoardMutations.HasMutations)
+        {
+            return 0;
+        }
+
+        HashSet<int> myPaintSet = (actingPlayerIndex == 0) ? paintedTilesP1_ : paintedTilesP2_;
+
+        for (int i = 0; i < actionResult.BoardMutations.Mutations.Count; i++)
+        {
+            BoardMutation mutation = actionResult.BoardMutations.Mutations[i];
+
+            if (mutation.TileID < 0 || mutation.TileMaterial == null || myPaintSet.Contains(mutation.TileID))
+            {
+                continue;
+            }
+
+            myPaintSet.Add(mutation.TileID);
+            activeGoal.CurrentCount = myPaintSet.Count;
+
+            if (activeGoal.CurrentCount >= activeGoal.TargetCount)
+            {
+                return actingPlayerIndex + 1;
+            }
         }
 
         return 0;

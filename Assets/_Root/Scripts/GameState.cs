@@ -4,19 +4,26 @@ public class GameState
 {
     private const float SharedTileVisualOffset = 0.75f;
 
+    private readonly Game game_;
     private readonly BoardController board_;
+    private readonly GoalManager goalManager_;
     private readonly PlayerController[] players_;
     private readonly MovementValidator movementValidator_ = new MovementValidator();
     private readonly BoardMutator boardMutator_ = new BoardMutator();
 
     private bool hasLoggedMissingReferences_;
+    private bool roundEndedThisTick_;
 
     public GameState(
+        Game game,
         BoardController board,
+        GoalManager goalManager,
         PlayerController[] players
     )
     {
+        game_ = game;
         board_ = board;
+        goalManager_ = goalManager;
         players_ = players != null
             ? players
             : new PlayerController[0];
@@ -26,6 +33,8 @@ public class GameState
     {
         if (!HasRequiredReferences()) return;
 
+        roundEndedThisTick_ = false;
+
         for (int i = 0; i < players_.Length; i++)
         {
             TryInitializePlayer(players_[i]);
@@ -33,7 +42,12 @@ public class GameState
 
         for (int i = 0; i < players_.Length; i++)
         {
-            TickPlayer(players_[i], deltaTime);
+            TickPlayer(players_[i], i, deltaTime);
+
+            if (roundEndedThisTick_)
+            {
+                return;
+            }
         }
 
         RefreshPlayerVisualLayout(false);
@@ -53,14 +67,14 @@ public class GameState
 
     private bool HasRequiredReferences()
     {
-        if (board_ != null && players_.Length > 0)
+        if (game_ != null && board_ != null && players_.Length > 0)
         {
             return true;
         }
 
         if (!hasLoggedMissingReferences_)
         {
-            Debug.LogError("GameState is missing BoardController or player controllers.");
+            Debug.LogError("GameState is missing Game, BoardController, or player controllers.");
             hasLoggedMissingReferences_ = true;
         }
 
@@ -85,7 +99,7 @@ public class GameState
         TryInitialize(playerController, playerMover);
     }
 
-    private void TickPlayer(PlayerController playerController, float deltaTime)
+    private void TickPlayer(PlayerController playerController, int playerIndex, float deltaTime)
     {
         if (playerController == null)
         {
@@ -110,7 +124,7 @@ public class GameState
         playerController.TickTimers(deltaTime);
 
         TryHandlePlayerMovement(playerController, playerMover);
-        TryHandlePlayerActions(playerController);
+        TryHandlePlayerActions(playerController, playerIndex);
     }
 
     private void TryInitialize(PlayerController playerController, PlayerMover playerMover)
@@ -270,7 +284,7 @@ public class GameState
         return order;
     }
 
-    private void TryHandlePlayerActions(PlayerController playerController)
+    private void TryHandlePlayerActions(PlayerController playerController, int playerIndex)
     {
         PlayerActionInput actionInput = playerController.GatherActionInput();
 
@@ -296,6 +310,35 @@ public class GameState
         );
 
         ApplyActionResult(actionResult);
+        TryCompleteActionGoal(playerIndex, actionResult);
+
+        if (actionInput.HasActiveAction)
+        {
+            RefreshPlayerRulesUI(playerIndex);
+        }
+    }
+
+    private void TryCompleteActionGoal(int playerIndex, PlayerActionResult actionResult)
+    {
+        if (goalManager_ == null)
+        {
+            return;
+        }
+
+        int winner = goalManager_.ProcessActionEvaluations(playerIndex, actionResult);
+
+        if (winner != 0)
+        {
+            CompleteRound(winner);
+        }
+    }
+
+    private void RefreshPlayerRulesUI(int playerIndex)
+    {
+        if (game_ != null)
+        {
+            game_.RefreshPlayerUI(playerIndex);
+        }
     }
 
     private void ApplyActionResult(PlayerActionResult actionResult)
@@ -365,22 +408,23 @@ public class GameState
 
     private void EvaluateRoundStatus()
     {
+        if (roundEndedThisTick_)
+        {
+            return;
+        }
+
         if (players_.Length < 2) return;
 
-        var goalManager = Object.FindFirstObjectByType<GoalManager>();
-        var ui = Object.FindFirstObjectByType<UIManager>();
-        var game = Object.FindFirstObjectByType<Game>();
+        if (goalManager_ == null) return;
 
-        if (goalManager == null || game == null) return;
-
-        int resultP1 = goalManager.ProcessStepEvaluations(
+        int resultP1 = goalManager_.ProcessStepEvaluations(
             0,
             players_[0].CurrentTile,
             board_.GetTileID(players_[0].CurrentTile),
             players_[1].CurrentTile
         );
 
-        int resultP2 = goalManager.ProcessStepEvaluations(
+        int resultP2 = goalManager_.ProcessStepEvaluations(
             1,
             players_[1].CurrentTile,
             board_.GetTileID(players_[1].CurrentTile),
@@ -390,61 +434,19 @@ public class GameState
         if (resultP1 != 0 || resultP2 != 0)
         {
             int winner = (resultP1 != 0) ? 1 : 2;
-
-            if (ui != null) ui.TriggerNewRoundPopup(winner);
-
-            goalManager.RollNewGoals(out string newP1Desc, out string newP2Desc);
-            goalManager.InitializeMapObjectives(board_);
-
-            if (ui != null)
-            {
-                ui.UpdatePlayer1UI(GetPlayerRuleList(0), newP1Desc);
-                ui.UpdatePlayer2UI(GetPlayerRuleList(1), newP2Desc);
-            }
+            CompleteRound(winner);
         }
     }
 
-    private string GetPlayerRuleText(int playerIndex)
+    private void CompleteRound(int winner)
     {
-        if (playerIndex < 0 || playerIndex >= players_.Length || players_[playerIndex] == null)
+        if (game_ == null)
         {
-            return "None";
+            return;
         }
 
-        return players_[playerIndex].GetRuleSummary();
+        roundEndedThisTick_ = true;
+        game_.HandleGoalManagerRoundEnd(winner);
     }
 
-    private System.Collections.Generic.List<string> GetPlayerRuleList(int playerIndex)
-    {
-        if (playerIndex < 0 || playerIndex >= players_.Length || players_[playerIndex] == null)
-        {
-            return new System.Collections.Generic.List<string>();
-        }
-
-        return SplitRuleSummary(players_[playerIndex].GetRuleSummary());
-    }
-
-    private System.Collections.Generic.List<string> SplitRuleSummary(string summary)
-    {
-        System.Collections.Generic.List<string> rules = new System.Collections.Generic.List<string>();
-
-        if (string.IsNullOrWhiteSpace(summary) || summary == "None")
-        {
-            return rules;
-        }
-
-        string[] parts = summary.Split(',');
-
-        for (int i = 0; i < parts.Length; i++)
-        {
-            string rule = parts[i].Trim();
-
-            if (rule.Length > 0)
-            {
-                rules.Add(rule);
-            }
-        }
-
-        return rules;
-    }
 }
